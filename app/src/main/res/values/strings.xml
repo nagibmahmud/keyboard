@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">✨ Glass Keyboard</string>
+    <string name="keyboard_name">✨ Glass Keyboard</string>
+    <string name="settings_title">Glass Keyboard Settings</string>
+    <string name="open_settings">⚙️  Enable Keyboard</string>
+    <string name="bangla_label">বাং</string>
+    <string name="english_label">EN</string>
+    <string name="ai_label">AI</string>
+    <string name="ai_suggestions">AI Suggestions</string>
+    <string name="ai_translate">AI Translate</string>
+    <string name="ai_grammar">AI Grammar Check</string>
+    <string name="ai_emoji">AI Emoji</string>
+    <string name="ai_smart_reply">Smart Reply</string>
+    
+    <!-- AI Panel Strings -->
+    <string name="ai_assistant">AI Assistant</string>
+    <string name="ai_translate_label">Translate</string>
+    <string name="ai_grammar_label">Grammar</string>
+    <string name="ai_summarize">Summarize</string>
+    <string name="ai_rewrite">Rewrite</string>
+    <string name="ai_emoji_label">Emoji</string>
+    <string name="ai_close">Close</string>
+    <string name="ai_send">Send</string>
+    <string name="ai_input_hint">Ask AI anything...</string>
+    <string name="ai_result_default">Start typing to see AI suggestions...</string>
+    
+    <!-- AI Suggestion Chips -->
+    <string name="chip_hello">Hello!</string>
+    <string name="chip_thanks">Thanks!</string>
+    <string name="chip_great">Great!</string>
+    <string name="chip_brb">BRB</string>
+    <string name="chip_hmm">Hmm...</string>
+    
+    <!-- Function Bar Content Descriptions -->
+    <string name="desc_ai_assistant">AI Assistant</string>
+    <string name="desc_translate">Translate</string>
+    <string name="desc_grammar">Grammar</string>
+    <string name="desc_summarize">Summarize</string>
+    <string name="desc_rewrite">Rewrite</string>
+    <string name="desc_emoji">Emoji</string>
+    <string name="desc_smart_reply">Smart Reply</string>
+    <string name="desc_clipboard">Clipboard</string>
+    <string name="desc_cursor_left">Cursor Left</string>
+    <string name="desc_cursor_right">Cursor Right</string>
+    <string name="desc_cursor_up">Cursor Up</string>
+    <string name="desc_cursor_down">Cursor Down</string>
+    <string name="desc_select_all">Select All</string>
+    <string name="desc_cut">Cut</string>
+    <string name="desc_copy">Copy</string>
+    <string name="desc_paste">Paste</string>
+    <string name="desc_settings">Settings</string>
+    
+    <!-- Settings Activity Strings -->
+    <string name="settings_subtitle">Apple-like Glassmorphism Design</string>
+    <string name="features_title">🎨 Features</string>
+    <string name="features_list">• Frosted glass keys with blur effect\n• Haptic feedback on every keypress\n• Auto-capitalization\n• Number &amp; symbol layer (tap 123)\n• Swipe left/right to move cursor\n• Swipe up to paste\n• Swipe down to hide\n• Smooth ripple animations</string>
+    <string name="footer_text">Made with ✨ for Android</string>
+    
+    <!-- Error Messages -->
+    <string name="error_prefix">Error:</string>
+    <string name="ai_error">AI Error: %s</string>
+    <string name="ai_result_prefix">✨ Result:\n%s</string>
+    
+    <!-- Toast Messages -->
+    <string name="toast_clipboard_empty">Clipboard is empty</string>
+    <string name="toast_clipboard_error">Clipboard Error</string>
+    <string name="toast_select_all_error">Select All Error</string>
+    <string name="toast_cut_success">Cut! ✂️</string>
+    <string name="toast_cut_error">Cut Error</string>
+    <string name="toast_copy_success">Copied! 📋</string>
+    <string name="toast_copy_error">Copy Error</string>
+    <string name="toast_paste_success">Pasted! 📌</string>
+    <string name="toast_paste_error">Paste Error</string>
+    <string name="toast_settings_error">Settings Error</string>
+</resources>

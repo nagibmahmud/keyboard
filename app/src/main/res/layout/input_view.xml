@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/keyboardRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#CC000000"
+    android:elevation="8dp">
+
+    <!-- AI Suggestion Bar -->
+    <HorizontalScrollView
+        android:id="@+id/aiSuggestionScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:background="#B3000000"
+        android:padding="6dp">
+
+        <LinearLayout
+            android:id="@+id/aiSuggestionBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/aiLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ai_label"
+                android:textSize="14sp"
+                android:textColor="#88FFFFFF"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/aiChip1"
+                style="@style/AISuggestionChip"
+                android:text="@string/chip_hello" />
+
+            <Button
+                android:id="@+id/aiChip2"
+                style="@style/AISuggestionChip"
+                android:text="@string/chip_thanks" />
+
+            <Button
+                android:id="@+id/aiChip3"
+                style="@style/AISuggestionChip"
+                android:text="@string/chip_great" />
+
+            <Button
+                android:id="@+id/aiChip4"
+                style="@style/AISuggestionChip"
+                android:text="@string/chip_brb" />
+
+            <Button
+                android:id="@+id/aiChip5"
+                style="@style/AISuggestionChip"
+                android:text="@string/chip_hmm" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Function Bar -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:background="#CC000000"
+        android:padding="4dp"
+        android:descendantFocusability="beforeDescendants">
+
+        <LinearLayout
+            android:id="@+id/functionBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:descendantFocusability="beforeDescendants">
+
+            <!-- AI Assistant -->
+            <ImageButton
+                android:id="@+id/btnAI"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_ai"
+                android:contentDescription="@string/desc_ai_assistant" />
+
+            <!-- Translate -->
+            <ImageButton
+                android:id="@+id/btnTranslate"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_translate"
+                android:contentDescription="@string/desc_translate" />
+
+            <!-- Grammar -->
+            <ImageButton
+                android:id="@+id/btnGrammar"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_grammar"
+                android:contentDescription="@string/desc_grammar" />
+
+            <!-- Summarize -->
+            <ImageButton
+                android:id="@+id/btnSummarize"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_summarize"
+                android:contentDescription="@string/desc_summarize" />
+
+            <!-- Rewrite -->
+            <ImageButton
+                android:id="@+id/btnRewrite"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_rewrite"
+                android:contentDescription="@string/desc_rewrite" />
+
+            <!-- Emoji AI -->
+            <ImageButton
+                android:id="@+id/btnEmoji"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_emoji"
+                android:contentDescription="@string/desc_emoji" />
+
+            <!-- Smart Reply -->
+            <ImageButton
+                android:id="@+id/btnSmartReply"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_smart_reply"
+                android:contentDescription="@string/desc_smart_reply" />
+
+            <!-- Divider -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:background="#33FFFFFF"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp" />
+
+            <!-- Clipboard -->
+            <ImageButton
+                android:id="@+id/btnClipboard"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_clipboard"
+                android:contentDescription="@string/desc_clipboard" />
+
+            <!-- Cursor Left -->
+            <ImageButton
+                android:id="@+id/btnCursorLeft"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_arrow_left"
+                android:contentDescription="@string/desc_cursor_left" />
+
+            <!-- Cursor Right -->
+            <ImageButton
+                android:id="@+id/btnCursorRight"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_arrow_right"
+                android:contentDescription="@string/desc_cursor_right" />
+
+            <!-- Cursor Up -->
+            <ImageButton
+                android:id="@+id/btnCursorUp"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_arrow_up"
+                android:contentDescription="@string/desc_cursor_up" />
+
+            <!-- Cursor Down -->
+            <ImageButton
+                android:id="@+id/btnCursorDown"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_arrow_down"
+                android:contentDescription="@string/desc_cursor_down" />
+
+            <!-- Select All -->
+            <ImageButton
+                android:id="@+id/btnSelectAll"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_select_all"
+                android:contentDescription="@string/desc_select_all" />
+
+            <!-- Cut -->
+            <ImageButton
+                android:id="@+id/btnCut"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_cut"
+                android:contentDescription="@string/desc_cut" />
+
+            <!-- Copy -->
+            <ImageButton
+                android:id="@+id/btnCopy"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_copy"
+                android:contentDescription="@string/desc_copy" />
+
+            <!-- Paste -->
+            <ImageButton
+                android:id="@+id/btnPaste"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_paste"
+                android:contentDescription="@string/desc_paste" />
+
+            <!-- Settings -->
+            <ImageButton
+                android:id="@+id/btnSettings"
+                style="@style/FunctionButton"
+                android:src="@drawable/ic_settings"
+                android:contentDescription="@string/desc_settings" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- AI Panel (hidden by default) -->
+    <LinearLayout
+        android:id="@+id/aiPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#D9000000"
+        android:visibility="gone"
+        android:padding="12dp">
+
+        <!-- AI Panel Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/aiPanelTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/ai_assistant"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/btnCloseAI"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/key_bg"
+                android:src="@drawable/ic_close"
+                android:contentDescription="@string/ai_close" />
+        </LinearLayout>
+
+        <!-- AI Mode Tabs -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:layout_marginBottom="12dp">
+
+            <LinearLayout
+                android:id="@+id/aiModeTabs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <Button
+                    android:id="@+id/tabAssistant"
+                    style="@style/AIModeTab"
+                    android:text="@string/ai_assistant" />
+
+                <Button
+                    android:id="@+id/tabTranslate"
+                    style="@style/AIModeTab"
+                    android:text="@string/ai_translate_label" />
+
+                <Button
+                    android:id="@+id/tabGrammar"
+                    style="@style/AIModeTab"
+                    android:text="@string/ai_grammar_label" />
+
+                <Button
+                    android:id="@+id/tabSummarize"
+                    style="@style/AIModeTab"
+                    android:text="@string/ai_summarize" />
+
+                <Button
+                    android:id="@+id/tabRewrite"
+                    style="@style/AIModeTab"
+                    android:text="@string/ai_rewrite" />
+
+                <Button
+                    android:id="@+id/tabEmoji"
+                    style="@style/AIModeTab"
+                    android:text="@string/ai_emoji_label" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- AI Results -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxHeight="200dp">
+
+            <LinearLayout
+                android:id="@+id/aiResults"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/aiResultText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ai_result_default"
+                    android:textColor="#CCCCCC"
+                    android:textSize="14sp"
+                    android:padding="12dp"
+                    android:background="@drawable/ai_result_bg" />
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- AI Input Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp">
+
+            <EditText
+                android:id="@+id/aiInputField"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/ai_input_bg"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#888888"
+                android:hint="@string/ai_input_hint"
+                android:textSize="14sp"
+                android:inputType="text"
+                android:imeOptions="actionSend"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:cursorVisible="true"
+                android:autofillHints="username" />
+
+            <ImageButton
+                android:id="@+id/btnAISend"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/key_bg_accent"
+                android:src="@drawable/ic_send"
+                android:contentDescription="@string/ai_send" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Main Keyboard View -->
+    <android.inputmethodservice.KeyboardView
+        android:id="@+id/keyboard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:keyBackground="@drawable/key_bg"
+        android:keyTextColor="#FFFFFF"
+        android:keyPreviewLayout="@layout/key_preview"
+        android:keyPreviewOffset="-10dp"
+        android:keyPreviewHeight="60dp"
+        android:keyTextSize="20sp"
+        android:labelTextSize="12sp"
+        android:background="#00000000" />
+
+</LinearLayout>

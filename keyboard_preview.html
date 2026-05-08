@@ -1,0 +1,3205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glass Keyboard Preview</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.12);
+        --glass-border: rgba(255, 255, 255, 0.18);
+        --glass-blur: 20px;
+        --key-bg: rgba(255, 255, 255, 0.15);
+        --key-active: rgba(255, 255, 255, 0.35);
+        --key-special: rgba(255, 255, 255, 0.08);
+        --text-primary: #FFFFFF;
+        --text-secondary: rgba(255, 255, 255, 0.7);
+        --accent: #6C63FF;
+        --accent-gradient: linear-gradient(135deg, #6C63FF 0%, #A855F7 100%);
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+        --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+        --radius-sm: 10px;
+        --radius-md: 16px;
+        --radius-lg: 24px;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #0F0C29 0%, #302B63 50%, #24243E 100%);
+        min-height: 100vh;
+        overflow: hidden;
+        position: relative;
+    }
+
+    body::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: 
+            radial-gradient(circle at 20% 50%, rgba(108, 99, 255, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
+            radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+        animation: float 20s ease-in-out infinite;
+        pointer-events: none;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        33% { transform: translate(30px, -50px) rotate(120deg); }
+        66% { transform: translate(-20px, 20px) rotate(240deg); }
+    }
+
+    /* ===== PHONE FRAME ===== */
+    .phone-frame {
+        width: 100%;
+        max-width: 420px;
+        height: 100vh;
+        margin: 0 auto;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        background: rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(40px);
+        border-left: 1px solid var(--glass-border);
+        border-right: 1px solid var(--glass-border);
+        box-shadow: 0 0 80px rgba(108, 99, 255, 0.1);
+    }
+
+    /* ===== STATUS BAR ===== */
+    .status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 20px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-primary);
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .status-icons {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .status-icons svg {
+        width: 14px;
+        height: 14px;
+        fill: currentColor;
+    }
+
+    /* ===== APP HEADER ===== */
+    .app-header {
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .app-title {
+        font-size: 18px;
+        font-weight: 700;
+        background: var(--accent-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .tab-bar {
+        display: flex;
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 4px;
+        border-radius: var(--radius-sm);
+    }
+
+    .tab {
+        padding: 8px 16px;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        font-family: inherit;
+    }
+
+    .tab:hover {
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .tab.active {
+        color: var(--text-primary);
+        background: var(--accent-gradient);
+        box-shadow: 0 2px 12px rgba(108, 99, 255, 0.4);
+    }
+
+    /* ===== SCREENS ===== */
+    .screen {
+        display: none;
+        flex: 1;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .screen.active {
+        display: flex;
+    }
+
+    /* ===== TEXT INPUT AREA ===== */
+    .text-area {
+        flex: 1;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+
+    .input-field {
+        width: 100%;
+        min-height: 120px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(var(--glass-blur));
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        color: var(--text-primary);
+        font-size: 16px;
+        line-height: 1.6;
+        font-family: inherit;
+        resize: none;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input-field:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+    }
+
+    .input-field::placeholder {
+        color: var(--text-secondary);
+    }
+
+    .typing-indicator {
+        margin-top: 12px;
+        font-size: 11px;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .typing-indicator::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        background: #10B981;
+        border-radius: 50%;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    /* ===== FUNCTION BAR ===== */
+    .function-bar {
+        display: flex;
+        gap: 4px;
+        padding: 6px 8px;
+        background: rgba(0, 0, 0, 0.2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .function-bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .func-btn {
+        flex-shrink: 0;
+        width: 40px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        color: var(--text-secondary);
+    }
+
+    .func-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: var(--text-primary);
+    }
+
+    .func-btn:active {
+        background: rgba(255, 255, 255, 0.25);
+        transform: scale(0.95);
+    }
+
+    .func-btn.active {
+        background: var(--accent-gradient);
+        border-color: transparent;
+        color: white;
+        box-shadow: 0 2px 8px rgba(108, 99, 255, 0.3);
+    }
+
+    .func-btn svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+    }
+
+    .func-divider {
+        width: 1px;
+        background: rgba(255, 255, 255, 0.1);
+        margin: 0 2px;
+    }
+
+    /* Key Width Classes */
+    .key.w-10 { flex: 0.7; }
+    .key.w-58 { flex: 5; }
+    .key.w-145 { flex: 1.3; }
+
+    /* ===== AI SUGGESTION BAR ===== */
+    .ai-suggestion-bar {
+        display: flex;
+        gap: 6px;
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.3);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        overflow-x: auto;
+        scrollbar-width: none;
+        min-height: 44px;
+        align-items: center;
+    }
+
+    .ai-suggestion-bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .ai-suggestion-chip {
+        flex-shrink: 0;
+        padding: 6px 14px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        font-family: inherit;
+    }
+
+    .ai-suggestion-chip:hover {
+        background: rgba(108, 99, 255, 0.2);
+        border-color: var(--accent);
+        color: var(--text-primary);
+    }
+
+    .ai-suggestion-chip:active {
+        transform: scale(0.95);
+    }
+
+    .ai-suggestion-chip.primary {
+        background: var(--accent-gradient);
+        border-color: transparent;
+        color: white;
+        box-shadow: 0 2px 8px rgba(108, 99, 255, 0.3);
+    }
+
+    .ai-suggestion-label {
+        flex-shrink: 0;
+        font-size: 10px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        margin-right: 4px;
+    }
+
+    .ai-suggestion-label svg {
+        width: 14px;
+        height: 14px;
+        fill: currentColor;
+        vertical-align: middle;
+    }
+
+    /* ===== AI PANEL ===== */
+    .ai-panel {
+        display: none;
+        flex-direction: column;
+        background: rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        max-height: 300px;
+        overflow: hidden;
+    }
+
+    .ai-panel.visible {
+        display: flex;
+        animation: slideUpPanel 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes slideUpPanel {
+        from { transform: translateY(100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .ai-panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .ai-panel-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ai-panel-title svg {
+        width: 18px;
+        height: 18px;
+        fill: var(--accent);
+    }
+
+    .ai-panel-close {
+        width: 28px;
+        height: 28px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        border-radius: 50%;
+        color: var(--text-secondary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: all 0.15s;
+    }
+
+    .ai-panel-close:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: var(--text-primary);
+    }
+
+    .ai-panel-content {
+        padding: 12px 16px;
+        overflow-y: auto;
+        max-height: 240px;
+    }
+
+    .ai-result {
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 8px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .ai-result:hover {
+        background: rgba(108, 99, 255, 0.15);
+        border-color: var(--accent);
+    }
+
+    .ai-result-label {
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .ai-input-row {
+        display: flex;
+        gap: 8px;
+        padding: 12px 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .ai-input-field {
+        flex: 1;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-size: 14px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .ai-input-field:focus {
+        border-color: var(--accent);
+    }
+
+    .ai-input-field::placeholder {
+        color: var(--text-secondary);
+    }
+
+    .ai-go-btn {
+        width: 44px;
+        height: 44px;
+        background: var(--accent-gradient);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        box-shadow: 0 2px 12px rgba(108, 99, 255, 0.4);
+    }
+
+    .ai-go-btn:hover {
+        transform: scale(1.05);
+    }
+
+    .ai-go-btn svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+    }
+
+    /* AI Mode Tabs */
+    .ai-mode-tabs {
+        display: flex;
+        gap: 4px;
+        padding: 8px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .ai-mode-tab {
+        padding: 6px 12px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.15s;
+        font-family: inherit;
+        font-weight: 500;
+    }
+
+    .ai-mode-tab:hover {
+        background: rgba(255, 255, 255, 0.12);
+        color: var(--text-primary);
+    }
+
+    .ai-mode-tab.active {
+        background: var(--accent-gradient);
+        border-color: transparent;
+        color: white;
+    }
+
+    /* ===== KEYBOARD ===== */
+    .keyboard-wrapper {
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(30px);
+        border-top: 1px solid var(--glass-border);
+    }
+
+    .keyboard-container {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .keyboard-row {
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+    }
+
+    .key {
+        flex: 1;
+        min-width: 0;
+        height: 48px;
+        background: var(--key-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-sm);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: var(--text-primary);
+        font-size: 18px;
+        font-weight: 500;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .key:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .key:active, .key.pressed {
+        background: var(--key-active);
+        transform: translateY(1px) scale(0.96);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .key.special {
+        background: var(--key-special);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .key svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+    }
+
+    .key.active-shift {
+        background: var(--accent-gradient);
+        border-color: transparent;
+        box-shadow: 0 2px 12px rgba(108, 99, 255, 0.4);
+    }
+
+    /* Key preview popup */
+    .key-preview-popup {
+        position: absolute;
+        width: 44px;
+        height: 56px;
+        background: rgba(30, 30, 50, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 8px;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        color: var(--text-primary);
+        font-size: 24px;
+        font-weight: 700;
+        pointer-events: none;
+        z-index: 50;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .key-preview-popup.visible {
+        display: flex;
+    }
+
+    /* Language switcher popup */
+    .lang-switcher {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-8px);
+        background: rgba(20, 20, 40, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 14px;
+        padding: 8px;
+        display: none;
+        gap: 6px;
+        z-index: 60;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        animation: popIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .lang-switcher.visible {
+        display: flex;
+    }
+
+    @keyframes popIn {
+        from { transform: translateX(-50%) translateY(0) scale(0.9); opacity: 0; }
+        to { transform: translateX(-50%) translateY(-8px) scale(1); opacity: 1; }
+    }
+
+    .lang-option {
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+        border: 1px solid transparent;
+    }
+
+    .lang-option:hover {
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .lang-option.active {
+        background: var(--accent);
+        border-color: var(--accent);
+    }
+
+    /* ===== SETTINGS SCREEN ===== */
+    .settings-content {
+        flex: 1;
+        padding: 0;
+        overflow-y: auto;
+        font-family: 'Inter', 'Consolas', monospace;
+    }
+
+    .settings-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--glass-border);
+        background: rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .folder-icon-lg {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+    }
+
+    .header-info h1 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+    }
+
+    .header-info p {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-family: 'Consolas', monospace;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        background: rgba(0,0,0,0.1);
+    }
+
+    .breadcrumb span {
+        color: var(--accent);
+    }
+
+    .breadcrumb .sep {
+        color: var(--text-secondary);
+        opacity: 0.5;
+    }
+
+    /* Folder Tree */
+    .folder-tree {
+        padding: 12px 0;
+    }
+
+    .folder {
+        user-select: none;
+    }
+
+    .folder-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+
+    .folder-header:hover {
+        background: rgba(255,255,255,0.05);
+    }
+
+    .folder-arrow {
+        width: 16px;
+        height: 16px;
+        fill: var(--text-secondary);
+        transition: transform 0.2s;
+        flex-shrink: 0;
+    }
+
+    .folder-arrow.open {
+        transform: rotate(90deg);
+    }
+
+    .folder-emoji {
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .folder-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        flex: 1;
+    }
+
+    .folder-count {
+        font-size: 11px;
+        color: var(--text-secondary);
+        background: rgba(255,255,255,0.08);
+        padding: 2px 8px;
+        border-radius: 10px;
+    }
+
+    .folder-children {
+        display: none;
+        padding-left: 28px;
+    }
+
+    .folder-children.open {
+        display: block;
+    }
+
+    /* Setting File Item */
+    .setting-file {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px 10px 14px;
+        border-radius: 8px;
+        margin: 2px 12px;
+        transition: background 0.15s;
+        cursor: pointer;
+    }
+
+    .setting-file:hover {
+        background: rgba(255,255,255,0.05);
+    }
+
+    .file-icon {
+        width: 32px;
+        height: 32px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        flex-shrink: 0;
+    }
+
+    .file-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .file-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 2px;
+    }
+
+    .file-desc {
+        font-size: 11px;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .file-value {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .file-value-text {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-family: 'Consolas', monospace;
+    }
+
+    /* Sub-folder inside settings */
+    .setting-file-expanded {
+        background: rgba(255,255,255,0.03);
+    }
+
+    .setting-file-children {
+        display: none;
+        padding: 8px 0 4px 42px;
+    }
+
+    .setting-file-children.open {
+        display: block;
+    }
+
+    .setting-file-child {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        margin: 2px 0;
+        background: rgba(255,255,255,0.03);
+        border-radius: 6px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        border-left: 2px solid var(--accent);
+    }
+
+    .setting-file-child .check {
+        width: 14px;
+        height: 14px;
+        accent-color: var(--accent);
+    }
+
+    /* Toggle Switch */
+    .toggle {
+        position: relative;
+        width: 40px;
+        height: 22px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 22px;
+        transition: all 0.25s;
+    }
+
+    .toggle-slider::before {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        left: 3px;
+        bottom: 3px;
+        background: white;
+        border-radius: 50%;
+        transition: all 0.25s;
+    }
+
+    .toggle input:checked + .toggle-slider {
+        background: var(--accent);
+    }
+
+    .toggle input:checked + .toggle-slider::before {
+        transform: translateX(18px);
+    }
+
+    /* Slider */
+    .setting-slider {
+        width: 100px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        flex-shrink: 0;
+    }
+
+    .setting-slider input[type="range"] {
+        width: 100%;
+        height: 3px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 2px;
+        outline: none;
+    }
+
+    .setting-slider input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        background: var(--accent);
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 6px rgba(108, 99, 255, 0.4);
+    }
+
+    .slider-value {
+        font-size: 10px;
+        color: var(--text-secondary);
+        text-align: right;
+        font-family: 'Consolas', monospace;
+    }
+
+    /* Theme Grid */
+    .theme-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding: 8px 12px 8px 42px;
+    }
+
+    .theme-grid.open {
+        display: grid;
+    }
+
+    .theme-option {
+        aspect-ratio: 16/10;
+        border-radius: 8px;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .theme-option:hover {
+        transform: scale(1.03);
+    }
+
+    .theme-option.selected {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.3);
+    }
+
+    .theme-option.selected::after {
+        content: '✓';
+        position: absolute;
+        top: 4px;
+        right: 6px;
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+
+    /* Language Tags */
+    .language-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 8px 12px 8px 42px;
+    }
+
+    .lang-tag {
+        padding: 6px 12px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 16px;
+        font-size: 12px;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .lang-tag:hover {
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    .lang-tag.active {
+        background: var(--accent);
+        border-color: var(--accent);
+    }
+
+    /* Action Button */
+    .action-button {
+        width: calc(100% - 40px);
+        margin: 16px 20px;
+        padding: 12px;
+        border: none;
+        background: var(--accent-gradient);
+        color: white;
+        font-size: 14px;
+        font-weight: 700;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(108, 99, 255, 0.35);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        font-family: inherit;
+    }
+
+    .action-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(108, 99, 255, 0.5);
+    }
+
+    .settings-footer {
+        padding: 16px 20px;
+        text-align: center;
+        font-size: 10px;
+        color: var(--text-secondary);
+        border-top: 1px solid var(--glass-border);
+        margin-top: 8px;
+        font-family: 'Consolas', monospace;
+    }
+
+    /* ===== THEME GRADIENT PREVIEW CLASSES ===== */
+    .grad-linear-135 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .grad-linear-90 { background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%); }
+    .grad-linear-180 { background: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%); }
+    .grad-radial { background: radial-gradient(circle at 30% 50%, #667eea, #764ba2, #24243e); }
+    .grad-conic { background: conic-gradient(from 45deg, #667eea, #764ba2, #f093fb, #667eea); }
+    .grad-aurora { background: linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #0f0c29 100%); }
+    .grad-mesh { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%); }
+    .grad-nebula { background: radial-gradient(ellipse at center, #1a1a3e 0%, #0d0d1a 50%, #000 100%); }
+    .grad-sunset { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+    .grad-ocean { background: linear-gradient(135deg, #0077b6 0%, #00b4d8 50%, #90e0ef 100%); }
+    .grad-forest { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); }
+    .grad-fire { background: linear-gradient(135deg, #f12711 0%, #f5af19 100%); }
+    .grad-purple { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+    .grad-midnight { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); }
+    .grad-candy { background: linear-gradient(135deg, #ee9ca7 0%, #ffdde1 50%, #ee9ca7 100%); }
+    .grad-ice { background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%); }
+    .grad-lavender { background: linear-gradient(135deg, #c471ed 0%, #f7797d 100%); }
+    .grad-emerald { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+
+    .glass-frosted { background: rgba(255,255,255,0.12); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.18); }
+    .glass-crystal { background: rgba(255,255,255,0.06); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.25); }
+    .glass-smoke { background: rgba(200,200,200,0.15); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+    .glass-ice { background: rgba(200,230,255,0.1); backdrop-filter: blur(25px); border: 1px solid rgba(200,230,255,0.2); }
+    .glass-matte { background: rgba(100,100,100,0.2); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08); }
+    .glass-glossy { background: rgba(255,255,255,0.18); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.35); }
+
+    .key-glass { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.1); }
+    .key-flat { background: rgba(255,255,255,0.12); border: none; }
+    .key-neumorph { background: rgba(50,50,80,0.3); border: none; box-shadow: 3px 3px 8px rgba(0,0,0,0.3); }
+    .key-outlined { background: transparent; border: 1.5px solid rgba(255,255,255,0.25); }
+    .key-pill { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
+    .key-rounded { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 200;
+        padding: 20px;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal {
+        background: rgba(30, 30, 50, 0.95);
+        backdrop-filter: blur(30px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        max-width: 380px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal h2 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+    }
+
+    .modal ol {
+        padding-left: 20px;
+        margin-bottom: 16px;
+    }
+
+    .modal li {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+        line-height: 1.6;
+    }
+
+    .modal p {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+
+    .modal-close {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        background: var(--accent-gradient);
+        color: white;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+        box-shadow: 0 4px 16px rgba(108, 99, 255, 0.4);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 480px) {
+        .phone-frame {
+            max-width: 100%;
+            border: none;
+        }
+
+        .key {
+            height: 44px;
+            font-size: 16px;
+        }
+
+        .tab {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+    }
+
+    @media (min-width: 768px) {
+        body {
+            padding: 20px;
+        }
+
+        .phone-frame {
+            height: calc(100vh - 40px);
+            border-radius: 40px;
+            border: 2px solid var(--glass-border);
+            overflow: hidden;
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.4);
+        }
+    }
+</style>
+<style>
+/* =========================================
+   CINEMATIC GLASS DESIGN SYSTEM
+   ========================================= */
+body.cinematic-glass-theme {
+    background-color: #050508 !important;
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 40%) !important;
+    background-attachment: fixed !important;
+    color: #f8fafc !important;
+}
+
+.cinematic-glass-theme .card, 
+.cinematic-glass-theme .panel, 
+.cinematic-glass-theme .glass-panel, 
+.cinematic-glass-theme .navbar, 
+.cinematic-glass-theme .nav, 
+.cinematic-glass-theme footer,
+.cinematic-glass-theme .footer,
+.cinematic-glass-theme .product-card,
+.cinematic-glass-theme .service-card,
+.cinematic-glass-theme .feature-card,
+.cinematic-glass-theme .stat-card,
+.cinematic-glass-theme .modal-content,
+.cinematic-glass-theme .about-image {
+    background: rgba(15, 15, 25, 0.55) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+    border-radius: 16px !important;
+    color: #f1f5f9 !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease !important;
+}
+
+.cinematic-glass-theme .card:hover, 
+.cinematic-glass-theme .product-card:hover, 
+.cinematic-glass-theme .service-card:hover, 
+.cinematic-glass-theme .feature-card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 15px 40px rgba(99, 102, 241, 0.25) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.cinematic-glass-theme h1, 
+.cinematic-glass-theme h2, 
+.cinematic-glass-theme h3,
+.cinematic-glass-theme h4,
+.cinematic-glass-theme h5,
+.cinematic-glass-theme h6 {
+    color: #ffffff !important;
+    letter-spacing: -0.02em !important;
+}
+
+.cinematic-glass-theme p, 
+.cinematic-glass-theme span, 
+.cinematic-glass-theme a,
+.cinematic-glass-theme li {
+    color: #cbd5e1 !important;
+}
+
+.cinematic-glass-theme button, 
+.cinematic-glass-theme .btn,
+.cinematic-glass-theme .btn-primary {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(168, 85, 247, 0.8)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+    backdrop-filter: blur(8px) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2) !important;
+    transition: all 0.3s ease !important;
+}
+
+.cinematic-glass-theme button:hover, 
+.cinematic-glass-theme .btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.cinematic-glass-theme input, 
+.cinematic-glass-theme textarea, 
+.cinematic-glass-theme select {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+}
+.cinematic-glass-theme input:focus, 
+.cinematic-glass-theme textarea:focus {
+    border-color: rgba(99, 102, 241, 0.5) !important;
+    outline: none !important;
+}
+</style>
+</head>
+<body class="cinematic-glass-theme">
+
+<div class="phone-frame">
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span id="time">9:41</span>
+        <div class="status-icons">
+            <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+        </div>
+    </div>
+
+    <!-- App Header -->
+    <div class="app-header">
+        <div class="app-title">Glass Keyboard</div>
+        <div class="tab-bar">
+            <button class="tab active" data-screen="keyboard">Keyboard</button>
+            <button class="tab" data-screen="settings">Settings</button>
+        </div>
+    </div>
+
+    <!-- Keyboard Screen -->
+    <div class="screen active" id="keyboardScreen">
+        <div class="text-area">
+            <textarea class="input-field" id="output" placeholder="Start typing..." readonly></textarea>
+            <div class="typing-indicator">Ready</div>
+        </div>
+
+        <div class="keyboard-wrapper">
+            <!-- AI Suggestion Bar -->
+            <div class="ai-suggestion-bar" id="aiSuggestionBar">
+                <div class="ai-suggestion-label">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                </div>
+                <div class="ai-suggestion-chip primary" onclick="insertAISuggestion('Hello, how are you?')">Hello!</div>
+                <div class="ai-suggestion-chip" onclick="insertAISuggestion('Thank you for your help')">Thanks!</div>
+                <div class="ai-suggestion-chip" onclick="insertAISuggestion('I will get back to you soon')">BRB</div>
+                <div class="ai-suggestion-chip" onclick="insertAISuggestion('That sounds great!')">Great!</div>
+                <div class="ai-suggestion-chip" onclick="insertAISuggestion('Let me think about it')">Hmm...</div>
+            </div>
+
+            <!-- Function Bar -->
+            <div class="function-bar">
+                <!-- AI Assistant -->
+                <div class="func-btn" title="AI Assistant" onclick="toggleAIPanel('assistant')">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.49L17.5 6.5 9.99 9.99 6.5 17.5zm5.5-6.6c.61 0 1.1.49 1.1 1.1s-.49 1.1-1.1 1.1-1.1-.49-1.1-1.1.49-1.1 1.1-1.1z"/></svg>
+                </div>
+                <!-- Translate -->
+                <div class="func-btn" title="AI Translate" onclick="toggleAIPanel('translate')">
+                    <svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>
+                </div>
+                <!-- Grammar Check -->
+                <div class="func-btn" title="AI Grammar" onclick="toggleAIPanel('grammar')">
+                    <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                </div>
+                <!-- Summarize -->
+                <div class="func-btn" title="AI Summarize" onclick="toggleAIPanel('summarize')">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                </div>
+                <!-- Rewrite -->
+                <div class="func-btn" title="AI Rewrite" onclick="toggleAIPanel('rewrite')">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                </div>
+                <!-- Emoji AI -->
+                <div class="func-btn" title="AI Emoji" onclick="toggleAIPanel('emoji')">
+                    <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/></svg>
+                </div>
+                <!-- Smart Reply -->
+                <div class="func-btn" title="Smart Reply" onclick="toggleAIPanel('smartreply')">
+                    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+                </div>
+
+                <div class="func-divider"></div>
+
+                <!-- Clipboard -->
+                <div class="func-btn" title="Clipboard" onclick="handleFuncBtn('clipboard', this)">
+                    <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                </div>
+                <!-- Voice Input -->
+                <div class="func-btn" title="Voice Input" onclick="handleFuncBtn('voice', this)">
+                    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.36-.98.85C16.52 14.2 14.47 16 12 16s-4.52-1.8-4.93-4.15c-.08-.49-.49-.85-.98-.85-.61 0-1.09.54-1 1.14.49 3 2.89 5.35 5.91 5.78V20c0 .55.45 1 1 1s1-.45 1-1v-2.08c3.02-.43 5.42-2.78 5.91-5.78.1-.6-.39-1.14-1-1.14z"/></svg>
+                </div>
+                
+                <div class="func-divider"></div>
+                
+                <!-- Cursor Left -->
+                <div class="func-btn" title="Cursor Left" onclick="handleFuncBtn('cursor-left', this)">
+                    <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                </div>
+                <!-- Cursor Right -->
+                <div class="func-btn" title="Cursor Right" onclick="handleFuncBtn('cursor-right', this)">
+                    <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                </div>
+                <!-- Cursor Up -->
+                <div class="func-btn" title="Cursor Up" onclick="handleFuncBtn('cursor-up', this)">
+                    <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+                </div>
+                <!-- Cursor Down -->
+                <div class="func-btn" title="Cursor Down" onclick="handleFuncBtn('cursor-down', this)">
+                    <svg viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+                </div>
+                
+                <div class="func-divider"></div>
+                
+                <!-- Select All -->
+                <div class="func-btn" title="Select All" onclick="handleFuncBtn('select-all', this)">
+                    <svg viewBox="0 0 24 24"><path d="M3 5h2V3c-1.1 0-2 .9-2 2zm0 8h2v-2H3v2zm0 4h2v-2H3v2zm0 4h2v-2H3v2zm4 0h2v-2H7v2zm8 0h2v-2h-2v2zm-4 0h2v-2h-2v2zm-8-8h2v-2H3v2zm0-4h2V9H3v2zm12 4h2v-2h-2v2zm0 4h2v-2h-2v2zM3 17h2v-2H3v2zM21 3v2h2c0-1.1-.9-2-2-2zm-2 12h2v-2h-2v2zm0-4h2V9h-2v2zm0-4h2V5h-2v2zm0 12h2v-2h-2v2zm-8 0h2v-2h-2v2zm-4 0h2v-2H7v2zm8 0h2v-2h-2v2zM7 3v2h2V3H7zm8 0v2h2V3h-2zm-4 0v2h2V3h-2zm-4 4h2V5H7v2zm8 0h2V5h-2v2zm-4 0h2V5h-2v2z"/></svg>
+                </div>
+                <!-- Cut -->
+                <div class="func-btn" title="Cut" onclick="handleFuncBtn('cut', this)">
+                    <svg viewBox="0 0 24 24"><path d="M9.64 7.64c.23-.5.36-1.05.36-1.64 0-2.21-1.79-4-4-4S2 3.79 2 6s1.79 4 4 4c.59 0 1.14-.13 1.64-.36L10 12l-2.36 2.36C7.14 14.13 6.59 14 6 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4c0-.59-.13-1.14-.36-1.64L12 14l7 7h3v-1L9.64 7.64zM6 8c-1.1 0-2-.89-2-2s.9-2 2-2 2 .89 2 2-.9 2-2 2zm0 12c-1.1 0-2-.89-2-2s.9-2 2-2 2 .89 2 2-.9 2-2 2zm6-7.5c-.28 0-.5-.22-.5-.5s.22-.5.5-.5.5.22.5.5-.22.5-.5.5zM19 3l-6 6 2 2 7-7V3z"/></svg>
+                </div>
+                <!-- Copy -->
+                <div class="func-btn" title="Copy" onclick="handleFuncBtn('copy', this)">
+                    <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                </div>
+                <!-- Paste -->
+                <div class="func-btn" title="Paste" onclick="handleFuncBtn('paste', this)">
+                    <svg viewBox="0 0 24 24"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/></svg>
+                </div>
+                
+                <div class="func-divider"></div>
+                
+                <!-- Settings Toggle -->
+                <div class="func-btn" title="Settings" onclick="document.querySelector('[data-screen=settings]').click()">
+                    <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+                </div>
+            </div>
+            
+            <div class="keyboard-container" id="keyboard"></div>
+
+            <!-- AI Panel -->
+            <div class="ai-panel" id="aiPanel">
+                <div class="ai-panel-header">
+                    <div class="ai-panel-title">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.49L17.5 6.5 9.99 9.99 6.5 17.5zm5.5-6.6c.61 0 1.1.49 1.1 1.1s-.49 1.1-1.1 1.1-1.1-.49-1.1-1.1.49-1.1 1.1-1.1z"/></svg>
+                        <span id="aiPanelTitle">AI Assistant</span>
+                    </div>
+                    <button class="ai-panel-close" onclick="closeAIPanel()">×</button>
+                </div>
+                <div class="ai-mode-tabs" id="aiModeTabs">
+                    <div class="ai-mode-tab active" data-mode="assistant" onclick="switchAIMode('assistant', this)">✨ Assistant</div>
+                    <div class="ai-mode-tab" data-mode="translate" onclick="switchAIMode('translate', this)">🌐 Translate</div>
+                    <div class="ai-mode-tab" data-mode="grammar" onclick="switchAIMode('grammar', this)">📝 Grammar</div>
+                    <div class="ai-mode-tab" data-mode="summarize" onclick="switchAIMode('summarize', this)">📋 Summarize</div>
+                    <div class="ai-mode-tab" data-mode="rewrite" onclick="switchAIMode('rewrite', this)">🔄 Rewrite</div>
+                    <div class="ai-mode-tab" data-mode="emoji" onclick="switchAIMode('emoji', this)">😀 Emoji</div>
+                </div>
+                <div class="ai-panel-content" id="aiPanelContent">
+                    <div class="ai-result" onclick="insertAIResult(this)">
+                        <div class="ai-result-label">💡 Suggestion</div>
+                        Start typing to see AI suggestions. I can help with completion, translation, grammar, and more!
+                    </div>
+                </div>
+                <div class="ai-input-row">
+                    <input type="text" class="ai-input-field" id="aiInput" placeholder="Ask AI anything..." onkeydown="if(event.key==='Enter')processAI()">
+                    <button class="ai-go-btn" onclick="processAI()">
+                        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div class="screen" id="settingsScreen">
+        <div class="settings-content">
+            <div class="settings-header">
+                <div class="folder-icon-lg">📂</div>
+                <div class="header-info">
+                    <h1>glass_keyboard</h1>
+                    <p>v2.0.0 • 9 folders • 32 settings • AI-Powered</p>
+                </div>
+            </div>
+
+            <div class="breadcrumb">
+                📁 <span>settings</span> <span class="sep">›</span> all
+            </div>
+
+            <div class="folder-tree">
+
+                <!-- 📁 languages -->
+                <div class="folder">
+                    <div class="folder-header" onclick="toggleFolder(this)">
+                        <svg class="folder-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        <span class="folder-emoji">📁</span>
+                        <span class="folder-name">languages</span>
+                        <span class="folder-count">3</span>
+                    </div>
+                    <div class="folder-children">
+                        <div class="setting-file">
+                            <div class="file-icon">🌐</div>
+                            <div class="file-info">
+                                <div class="file-name">switch_method</div>
+                                <div class="file-desc">long_press_space</div>
+                            </div>
+                            <div class="file-value"><span class="file-value-text">enabled</span></div>
+                        </div>
+                        <div class="setting-file" onclick="toggleFileChildren(this)">
+                            <div class="file-icon">⌨️</div>
+                            <div class="file-info">
+                                <div class="file-name">enabled_languages</div>
+                                <div class="file-desc">tap to manage</div>
+                            </div>
+                            <div class="file-value"><svg class="folder-arrow" viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--text-secondary)"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+                        </div>
+                        <div class="setting-file-children">
+                            <div class="language-tags">
+                                <div class="lang-tag active" onclick="this.classList.toggle('active')">🇺🇸 English</div>
+                                <div class="lang-tag active" onclick="this.classList.toggle('active')">🇧🇩 বাংলা</div>
+                                <div class="lang-tag" onclick="this.classList.toggle('active')">🇬🇧 English (UK)</div>
+                                <div class="lang-tag" onclick="this.classList.toggle('active')">🇮🇳 हिन्दी</div>
+                                <div class="lang-tag" onclick="this.classList.toggle('active')">🇪🇸 Español</div>
+                                <div class="lang-tag" onclick="this.classList.toggle('active')">🇫🇷 Français</div>
+                                <div class="lang-tag" onclick="this.classList.toggle('active')">🇩🇪 Deutsch</div>
+                                <div class="lang-tag" onclick="this.classList.toggle('active')">🇯🇵 日本語</div>
+                            </div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">⏱️</div>
+                            <div class="file-info">
+                                <div class="file-name">long_press_delay</div>
+                                <div class="file-desc">hold duration</div>
+                            </div>
+                            <div class="file-value"><span class="file-value-text">400ms</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📁 text_correction -->
+                <div class="folder">
+                    <div class="folder-header" onclick="toggleFolder(this)">
+                        <svg class="folder-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        <span class="folder-emoji">📁</span>
+                        <span class="folder-name">text_correction</span>
+                        <span class="folder-count">5</span>
+                    </div>
+                    <div class="folder-children">
+                        <div class="setting-file">
+                            <div class="file-icon">✨</div>
+                            <div class="file-info">
+                                <div class="file-name">auto_spell_correction</div>
+                                <div class="file-desc">fix misspelled words</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">📝</div>
+                            <div class="file-info">
+                                <div class="file-name">auto_capitalization</div>
+                                <div class="file-desc">capitalize sentences</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">⏺️</div>
+                            <div class="file-info">
+                                <div class="file-name">auto_punctuation</div>
+                                <div class="file-desc">double space → period</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">💡</div>
+                            <div class="file-info">
+                                <div class="file-name">suggestions_strip</div>
+                                <div class="file-desc">show word suggestions</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">🔄</div>
+                            <div class="file-info">
+                                <div class="file-name">next_word_suggestions</div>
+                                <div class="file-desc">predict next word</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📁 preferences -->
+                <div class="folder">
+                    <div class="folder-header" onclick="toggleFolder(this)">
+                        <svg class="folder-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        <span class="folder-emoji">📁</span>
+                        <span class="folder-name">preferences</span>
+                        <span class="folder-count">5</span>
+                    </div>
+                    <div class="folder-children">
+                        <div class="setting-file">
+                            <div class="file-icon">🔢</div>
+                            <div class="file-info">
+                                <div class="file-name">show_number_row</div>
+                                <div class="file-desc">numbers above letters</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">↕️</div>
+                            <div class="file-info">
+                                <div class="file-name">keyboard_height</div>
+                                <div class="file-desc">adjust size</div>
+                            </div>
+                            <div class="file-value"><div class="setting-slider"><input type="range" min="1" max="5" value="3" oninput="this.nextElementSibling.textContent=['XS','S','M','L','XL'][this.value-1]"><span class="slider-value">M</span></div></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">🔁</div>
+                            <div class="file-info">
+                                <div class="file-name">key_repeat_on_hold</div>
+                                <div class="file-desc">repeat character</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">👆</div>
+                            <div class="file-info">
+                                <div class="file-name">key_preview_popup</div>
+                                <div class="file-desc">enlarged character on press</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">🎯</div>
+                            <div class="file-info">
+                                <div class="file-name">slide_to_type</div>
+                                <div class="file-desc">glide typing</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📁 sound_and_haptics -->
+                <div class="folder">
+                    <div class="folder-header" onclick="toggleFolder(this)">
+                        <svg class="folder-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        <span class="folder-emoji">📁</span>
+                        <span class="folder-name">sound_and_haptics</span>
+                        <span class="folder-count">4</span>
+                    </div>
+                    <div class="folder-children">
+                        <div class="setting-file">
+                            <div class="file-icon">🔊</div>
+                            <div class="file-info">
+                                <div class="file-name">sound_on_keypress</div>
+                                <div class="file-desc">play click sound</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">🎵</div>
+                            <div class="file-info">
+                                <div class="file-name">sound_volume</div>
+                                <div class="file-desc">keypress sound level</div>
+                            </div>
+                            <div class="file-value"><div class="setting-slider"><input type="range" min="0" max="100" value="10" oninput="this.nextElementSibling.textContent=this.value+'%'"><span class="slider-value">10%</span></div></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">📳</div>
+                            <div class="file-info">
+                                <div class="file-name">haptic_feedback</div>
+                                <div class="file-desc">vibrate on keypress</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">⚡</div>
+                            <div class="file-info">
+                                <div class="file-name">vibration_strength</div>
+                                <div class="file-desc">haptic intensity</div>
+                            </div>
+                            <div class="file-value"><div class="setting-slider"><input type="range" min="0" max="100" value="50" oninput="this.nextElementSibling.textContent=this.value+'%'"><span class="slider-value">50%</span></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📁 layout -->
+                <div class="folder">
+                    <div class="folder-header" onclick="toggleFolder(this)">
+                        <svg class="folder-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        <span class="folder-emoji">📁</span>
+                        <span class="folder-name">layout</span>
+                        <span class="folder-count">3</span>
+                    </div>
+                    <div class="folder-children">
+                        <div class="setting-file" onclick="toggleFileChildren(this)">
+                            <div class="file-icon">⌨️</div>
+                            <div class="file-info">
+                                <div class="file-name">keyboard_layout</div>
+                                <div class="file-desc">QWERTY, AZERTY, Dvorak...</div>
+                            </div>
+                            <div class="file-value"><svg class="folder-arrow" viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--text-secondary)"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+                        </div>
+                        <div class="setting-file-children">
+                            <div class="setting-file-child"><input type="checkbox" class="check" checked><label>QWERTY (Standard)</label></div>
+                            <div class="setting-file-child"><input type="checkbox" class="check"><label>AZERTY (French)</label></div>
+                            <div class="setting-file-child"><input type="checkbox" class="check"><label>Dvorak</label></div>
+                            <div class="setting-file-child"><input type="checkbox" class="check"><label>Colemak</label></div>
+                            <div class="setting-file-child"><input type="checkbox" class="check"><label>One-Handed</label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">↔️</div>
+                            <div class="file-info">
+                                <div class="file-name">key_border</div>
+                                <div class="file-desc">show borders</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">🔤</div>
+                            <div class="file-info">
+                                <div class="file-name">key_text_size</div>
+                                <div class="file-desc">font size on keys</div>
+                            </div>
+                            <div class="file-value"><div class="setting-slider"><input type="range" min="12" max="28" value="20" oninput="this.nextElementSibling.textContent=this.value+'px'"><span class="slider-value">20px</span></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📁 theme -->
+                <div class="folder">
+                    <div class="folder-header" onclick="toggleFolder(this)">
+                        <svg class="folder-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        <span class="folder-emoji">📁</span>
+                        <span class="folder-name">theme</span>
+                        <span class="folder-count">3</span>
+                    </div>
+                    <div class="folder-children">
+                        <div class="setting-file" onclick="toggleFileChildren(this)">
+                            <div class="file-icon">🎨</div>
+                            <div class="file-info">
+                                <div class="file-name">gradient_backgrounds</div>
+                                <div class="file-desc">18 gradient types</div>
+                            </div>
+                            <div class="file-value"><svg class="folder-arrow" viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--text-secondary)"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+                        </div>
+                        <div class="setting-file-children">
+                            <div class="theme-grid" id="gradientGrid">
+                                <div class="theme-option grad-linear-135 selected" onclick="applyTheme('linear-135',this)"></div>
+                                <div class="theme-option grad-linear-90" onclick="applyTheme('linear-90',this)"></div>
+                                <div class="theme-option grad-linear-180" onclick="applyTheme('linear-180',this)"></div>
+                                <div class="theme-option grad-radial" onclick="applyTheme('radial',this)"></div>
+                                <div class="theme-option grad-conic" onclick="applyTheme('conic',this)"></div>
+                                <div class="theme-option grad-aurora" onclick="applyTheme('aurora',this)"></div>
+                                <div class="theme-option grad-mesh" onclick="applyTheme('mesh',this)"></div>
+                                <div class="theme-option grad-nebula" onclick="applyTheme('nebula',this)"></div>
+                                <div class="theme-option grad-sunset" onclick="applyTheme('sunset',this)"></div>
+                                <div class="theme-option grad-ocean" onclick="applyTheme('ocean',this)"></div>
+                                <div class="theme-option grad-forest" onclick="applyTheme('forest',this)"></div>
+                                <div class="theme-option grad-fire" onclick="applyTheme('fire',this)"></div>
+                                <div class="theme-option grad-purple" onclick="applyTheme('purple',this)"></div>
+                                <div class="theme-option grad-midnight" onclick="applyTheme('midnight',this)"></div>
+                                <div class="theme-option grad-candy" onclick="applyTheme('candy',this)"></div>
+                                <div class="theme-option grad-ice" onclick="applyTheme('ice',this)"></div>
+                                <div class="theme-option grad-lavender" onclick="applyTheme('lavender',this)"></div>
+                                <div class="theme-option grad-emerald" onclick="applyTheme('emerald',this)"></div>
+                            </div>
+                        </div>
+                        <div class="setting-file" onclick="toggleFileChildren(this)">
+                            <div class="file-icon">🌫️</div>
+                            <div class="file-info">
+                                <div class="file-name">glass_morphism</div>
+                                <div class="file-desc">6 glass styles</div>
+                            </div>
+                            <div class="file-value"><svg class="folder-arrow" viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--text-secondary)"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+                        </div>
+                        <div class="setting-file-children">
+                            <div class="theme-grid" id="glassGrid">
+                                <div class="theme-option glass-frosted selected" onclick="applyGlass('frosted',this)"></div>
+                                <div class="theme-option glass-crystal" onclick="applyGlass('crystal',this)"></div>
+                                <div class="theme-option glass-smoke" onclick="applyGlass('smoke',this)"></div>
+                                <div class="theme-option glass-ice" onclick="applyGlass('ice',this)"></div>
+                                <div class="theme-option glass-matte" onclick="applyGlass('matte',this)"></div>
+                                <div class="theme-option glass-glossy" onclick="applyGlass('glossy',this)"></div>
+                            </div>
+                        </div>
+                        <div class="setting-file" onclick="toggleFileChildren(this)">
+                            <div class="file-icon">⌨️</div>
+                            <div class="file-info">
+                                <div class="file-name">key_style</div>
+                                <div class="file-desc">6 key appearances</div>
+                            </div>
+                            <div class="file-value"><svg class="folder-arrow" viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--text-secondary)"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+                        </div>
+                        <div class="setting-file-children">
+                            <div class="theme-grid" id="keyGrid">
+                                <div class="theme-option key-glass selected" onclick="applyKeyStyle('glass',this)"></div>
+                                <div class="theme-option key-flat" onclick="applyKeyStyle('flat',this)"></div>
+                                <div class="theme-option key-neumorph" onclick="applyKeyStyle('neumorph',this)"></div>
+                                <div class="theme-option key-outlined" onclick="applyKeyStyle('outlined',this)"></div>
+                                <div class="theme-option key-pill" onclick="applyKeyStyle('pill',this)"></div>
+                                <div class="theme-option key-rounded" onclick="applyKeyStyle('rounded',this)"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📁 ai_features -->
+                <div class="folder">
+                    <div class="folder-header" onclick="toggleFolder(this)">
+                        <svg class="folder-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        <span class="folder-emoji">🤖</span>
+                        <span class="folder-name">ai_features</span>
+                        <span class="folder-count">8</span>
+                    </div>
+                    <div class="folder-children">
+                        <div class="setting-file">
+                            <div class="file-icon">✨</div>
+                            <div class="file-info">
+                                <div class="file-name">ai_suggestions</div>
+                                <div class="file-desc">smart text predictions</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">🌐</div>
+                            <div class="file-info">
+                                <div class="file-name">auto_translate</div>
+                                <div class="file-desc">translate as you type</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">📝</div>
+                            <div class="file-info">
+                                <div class="file-name">grammar_check</div>
+                                <div class="file-desc">real-time grammar fixing</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">🔄</div>
+                            <div class="file-info">
+                                <div class="file-name">auto_complete</div>
+                                <div class="file-desc">predictive text</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">💬</div>
+                            <div class="file-info">
+                                <div class="file-name">smart_replies</div>
+                                <div class="file-desc">contextual responses</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">😀</div>
+                            <div class="file-info">
+                                <div class="file-name">emoji_suggestions</div>
+                                <div class="file-desc">auto emoji insert</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">🎯</div>
+                            <div class="file-info">
+                                <div class="file-name">context_awareness</div>
+                                <div class="file-desc">learn typing patterns</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">🔒</div>
+                            <div class="file-info">
+                                <div class="file-name">ai_privacy</div>
+                                <div class="file-desc">on-device processing</div>
+                            </div>
+                            <div class="file-value"><span class="file-value-text">local only</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 📁 advanced -->
+                <div class="folder">
+                    <div class="folder-header" onclick="toggleFolder(this)">
+                        <svg class="folder-arrow" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                        <span class="folder-emoji">📁</span>
+                        <span class="folder-name">advanced</span>
+                        <span class="folder-count">5</span>
+                    </div>
+                    <div class="folder-children">
+                        <div class="setting-file">
+                            <div class="file-icon">🔒</div>
+                            <div class="file-info">
+                                <div class="file-name">incognito_mode</div>
+                                <div class="file-desc">don't save history</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">📊</div>
+                            <div class="file-info">
+                                <div class="file-name">usage_statistics</div>
+                                <div class="file-desc">track most-used words</div>
+                            </div>
+                            <div class="file-value"><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+                        </div>
+                        <div class="setting-file" onclick="toggleFileChildren(this)">
+                            <div class="file-icon">👆</div>
+                            <div class="file-info">
+                                <div class="file-name">gesture_shortcuts</div>
+                                <div class="file-desc">swipe actions</div>
+                            </div>
+                            <div class="file-value"><svg class="folder-arrow" viewBox="0 0 24 24" style="width:14px;height:14px;fill:var(--text-secondary)"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></div>
+                        </div>
+                        <div class="setting-file-children">
+                            <div class="setting-file-child">Swipe Left → cursor left</div>
+                            <div class="setting-file-child">Swipe Right → cursor right</div>
+                            <div class="setting-file-child">Swipe Up → paste</div>
+                            <div class="setting-file-child">Swipe Down → hide</div>
+                            <div class="setting-file-child">Long press Space → language</div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">🗑️</div>
+                            <div class="file-info">
+                                <div class="file-name">clear_learned_words</div>
+                                <div class="file-desc">reset dictionary</div>
+                            </div>
+                            <div class="file-value"><span class="file-value-text" style="color:var(--accent);cursor:pointer;" onclick="alert('Dictionary cleared!')">clear ›</span></div>
+                        </div>
+                        <div class="setting-file">
+                            <div class="file-icon">💾</div>
+                            <div class="file-info">
+                                <div class="file-name">backup_restore</div>
+                                <div class="file-desc">export/import settings</div>
+                            </div>
+                            <div class="file-value"><span class="file-value-text" style="color:var(--accent);cursor:pointer;">open ›</span></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <button class="action-button" id="enableBtn">⚙️ Enable in Android Settings</button>
+
+            <div class="settings-footer">
+                <p>glass_keyboard v2.0.0 • Made with ✨ & AI for Android</p>
+                <p style="margin-top:4px;">Privacy: No data collected • No internet permission</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Preview Popup -->
+<div class="key-preview-popup" id="keyPreview"></div>
+
+<!-- Language Switcher Popup -->
+<div class="lang-switcher" id="langSwitcher">
+    <div class="lang-option active" data-lang="qwerty" onclick="switchLang('qwerty')">🇺🇸 English</div>
+    <div class="lang-option" data-lang="bangla" onclick="switchLang('bangla')">🇧🇩 বাংলা</div>
+</div>
+
+<!-- Enable Modal -->
+<div class="modal-overlay" id="enableModal">
+    <div class="modal">
+        <h2>⚙️ Enable Glass Keyboard</h2>
+        <ol>
+            <li>Go to <strong>Settings → System → Languages & input</strong></li>
+            <li>Tap <strong>On-screen keyboard → Manage keyboards</strong></li>
+            <li>Toggle <strong>Glass Keyboard</strong> ON</li>
+            <li>Select it as your current keyboard</li>
+        </ol>
+        <p>This preview simulates the experience. On a real device, Android handles the keyboard settings.</p>
+        <button class="modal-close" id="closeModal">Got it!</button>
+    </div>
+</div>
+
+<script>
+// Layouts
+const layouts = {
+    qwerty: [
+        [
+            {code: 113, label: 'q'}, {code: 119, label: 'w'}, {code: 101, label: 'e'}, {code: 114, label: 'r'}, {code: 116, label: 't'},
+            {code: 121, label: 'y'}, {code: 117, label: 'u'}, {code: 105, label: 'i'}, {code: 111, label: 'o'}, {code: 112, label: 'p'}
+        ],
+        [
+            {code: 97, label: 'a', w: 'w-145'}, {code: 115, label: 's'}, {code: 100, label: 'd'}, {code: 102, label: 'f'}, {code: 103, label: 'g'},
+            {code: 104, label: 'h'}, {code: 106, label: 'j'}, {code: 107, label: 'k'}, {code: 108, label: 'l', w: 'w-145'}
+        ],
+        [
+            {code: -1, label: '⇧', w: 'w-145', special: true, icon: 'shift', id: 'shiftKey'},
+            {code: 122, label: 'z'}, {code: 120, label: 'x'}, {code: 99, label: 'c'}, {code: 118, label: 'v'},
+            {code: 98, label: 'b'}, {code: 110, label: 'n'}, {code: 109, label: 'm'},
+            {code: -5, label: '⌫', w: 'w-145', special: true, icon: 'backspace'}
+        ],
+        [
+            {code: -2, label: '123', w: 'w-10', special: true},
+            {code: 44, label: ',', w: 'w-10'},
+            {code: 32, label: 'space', w: 'w-58', special: true, id: 'spaceKey'},
+            {code: 46, label: '.', w: 'w-10'},
+            {code: -3, label: '↵', w: 'w-145', special: true, icon: 'enter'}
+        ]
+    ],
+    symbols: [
+        [
+            {code: 49, label: '1'}, {code: 50, label: '2'}, {code: 51, label: '3'}, {code: 52, label: '4'}, {code: 53, label: '5'},
+            {code: 54, label: '6'}, {code: 55, label: '7'}, {code: 56, label: '8'}, {code: 57, label: '9'}, {code: 48, label: '0'}
+        ],
+        [
+            {code: 64, label: '@'}, {code: 35, label: '#'}, {code: 36, label: '$'}, {code: 37, label: '%'}, {code: 38, label: '&'},
+            {code: 42, label: '*'}, {code: 45, label: '-'}, {code: 61, label: '='}, {code: 92, label: '\\'}, {code: 124, label: '|'}
+        ],
+        [
+            {code: -2, label: 'ABC', w: 'w-145', special: true},
+            {code: 33, label: '!'}, {code: 34, label: '"'}, {code: 39, label: "'"}, {code: 58, label: ':'},
+            {code: 59, label: ';'}, {code: 47, label: '/'}, {code: 63, label: '?'},
+            {code: -5, label: '⌫', w: 'w-145', special: true, icon: 'backspace'}
+        ],
+        [
+            {code: -2, label: 'ABC', w: 'w-145', special: true},
+            {code: 44, label: ',', w: 'w-10'},
+            {code: 32, label: 'space', w: 'w-58', special: true, id: 'spaceKey'},
+            {code: 46, label: '.', w: 'w-10'},
+            {code: -3, label: '↵', w: 'w-145', special: true, icon: 'enter'}
+        ]
+    ],
+    bangla: [
+        [
+            {code: 2488, label: 'ঔ'}, {code: 2482, label: 'ঐ'}, {code: 2476, label: 'আ'}, {code: 2480, label: 'ঈ'}, {code: 2485, label: 'ঊ'},
+            {code: 2490, label: 'ঋ'}, {code: 2487, label: 'এ'}, {code: 2494, label: 'ও'}, {code: 2492, label: 'ঢ'}, {code: 2493, label: 'ঢ়'}
+        ],
+        [
+            {code: 2474, label: 'অ', w: 'w-145'},
+            {code: 2454, label: 'ক'}, {code: 2455, label: 'খ'}, {code: 2456, label: 'গ'}, {code: 2457, label: 'ঘ'},
+            {code: 2458, label: 'ঙ'}, {code: 2459, label: 'চ'}, {code: 2460, label: 'ছ'}, {code: 2461, label: 'জ', w: 'w-145'}
+        ],
+        [
+            {code: -1, label: '⇧', w: 'w-145', special: true, icon: 'shift', id: 'shiftKey'},
+            {code: 2462, label: 'ঝ'}, {code: 2463, label: 'ঞ'}, {code: 2464, label: 'ট'}, {code: 2465, label: 'ঠ'},
+            {code: 2466, label: 'ড'}, {code: 2467, label: 'ঢ'}, {code: 2468, label: 'ণ'},
+            {code: -5, label: '⌫', w: 'w-145', special: true, icon: 'backspace'}
+        ],
+        [
+            {code: -2, label: 'EN', w: 'w-145', special: true},
+            {code: 2469, label: 'ত'},
+            {code: 32, label: 'space', w: 'w-58', special: true, id: 'spaceKey'},
+            {code: 2470, label: 'থ'},
+            {code: -3, label: '↵', w: 'w-145', special: true, icon: 'enter'}
+        ]
+    ]
+};
+
+const icons = {
+    shift: '<svg viewBox="0 0 24 24"><path d="M12 2L5 12h4v8h6v-8h4L12 2z"/></svg>',
+    backspace: '<svg viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.12c.36.53.9.88 1.59.88h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H7.07L2.4 12l4.66-7H22v14zm-11.59-2L14 13.41 17.59 17 19 15.59 15.41 12 19 8.41 17.59 7 14 10.59 10.41 7 9 8.41 12.59 12 9 15.59z"/></svg>',
+    enter: '<svg viewBox="0 0 24 24"><path d="M19 7v4H5.83l3.58-3.58L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7h-2z"/></svg>'
+};
+
+let currentLayout = 'qwerty';
+let caps = false;
+let output = '';
+
+function renderKeyboard() {
+    const keyboard = document.getElementById('keyboard');
+    const layout = layouts[currentLayout];
+    keyboard.innerHTML = '';
+
+    layout.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'keyboard-row';
+
+        row.forEach(key => {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = `key ${key.special ? 'special' : ''} ${key.w || ''}`;
+            keyDiv.dataset.code = key.code;
+
+            if (key.id) keyDiv.id = key.id;
+
+            if (key.icon && icons[key.icon]) {
+                keyDiv.innerHTML = icons[key.icon];
+            } else {
+                let label = key.label;
+                if (key.code > 0 && !key.special && caps && currentLayout === 'qwerty') {
+                    label = label.toUpperCase();
+                }
+                keyDiv.textContent = label;
+            }
+
+            if (key.code === -1 && caps) {
+                keyDiv.classList.add('active-shift');
+            }
+
+            // Long press detection for space key
+            let pressTimer = null;
+            let isLongPress = false;
+
+            const startPress = (e) => {
+                isLongPress = false;
+                pressTimer = setTimeout(() => {
+                    if (key.code === 32) {
+                        isLongPress = true;
+                        showLangSwitcher(keyDiv);
+                    }
+                }, 400);
+
+                handleKey(key);
+                keyDiv.classList.add('pressed');
+                if (key.code !== 32) showPreview(keyDiv, key);
+            };
+
+            const endPress = () => {
+                clearTimeout(pressTimer);
+                keyDiv.classList.remove('pressed');
+                hidePreview();
+                if (key.code === 32) {
+                    setTimeout(hideLangSwitcher, 100);
+                }
+            };
+
+            keyDiv.addEventListener('mousedown', startPress);
+            keyDiv.addEventListener('mouseup', endPress);
+            keyDiv.addEventListener('mouseleave', () => {
+                clearTimeout(pressTimer);
+                keyDiv.classList.remove('pressed');
+                hidePreview();
+            });
+
+            keyDiv.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startPress(e);
+            });
+            keyDiv.addEventListener('touchend', endPress);
+
+            rowDiv.appendChild(keyDiv);
+        });
+
+        keyboard.appendChild(rowDiv);
+    });
+}
+
+function handleKey(key) {
+    switch (key.code) {
+        case -1:
+            caps = !caps;
+            renderKeyboard();
+            break;
+        case -2:
+            currentLayout = currentLayout === 'qwerty' || currentLayout === 'bangla' ? 'symbols' : 'qwerty';
+            caps = false;
+            renderKeyboard();
+            break;
+        case -3:
+            output += '\n';
+            updateOutput();
+            break;
+        case -5:
+            output = output.slice(0, -1);
+            updateOutput();
+            break;
+        case 32:
+            // Space - only add space if not long-pressing
+            if (!window._isLangSwitching) {
+                output += ' ';
+                updateOutput();
+                onTextChange();
+            }
+            break;
+        default:
+            let char = String.fromCharCode(key.code);
+            if (caps && currentLayout === 'qwerty' && key.code >= 97 && key.code <= 122) {
+                char = char.toUpperCase();
+            }
+            output += char;
+            updateOutput();
+            onTextChange();
+            break;
+    }
+}
+
+function updateOutput() {
+    const outputEl = document.getElementById('output');
+    outputEl.value = output;
+    outputEl.scrollTop = outputEl.scrollHeight;
+}
+
+function showPreview(keyDiv, key) {
+    const preview = document.getElementById('keyPreview');
+    let label = key.label;
+    if (key.code > 0 && !key.special && caps && currentLayout === 'qwerty') {
+        label = label.toUpperCase();
+    }
+    preview.textContent = label;
+    preview.classList.add('visible');
+
+    const rect = keyDiv.getBoundingClientRect();
+    preview.style.left = (rect.left + rect.width / 2 - 22) + 'px';
+    preview.style.top = (rect.top - 62) + 'px';
+}
+
+function hidePreview() {
+    document.getElementById('keyPreview').classList.remove('visible');
+}
+
+// Tab navigation
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        
+        tab.classList.add('active');
+        const screenName = tab.dataset.screen;
+        document.getElementById(screenName + 'Screen').classList.add('active');
+    });
+});
+
+// Modal
+document.getElementById('enableBtn').addEventListener('click', () => {
+    document.getElementById('enableModal').classList.add('active');
+});
+
+document.getElementById('closeModal').addEventListener('click', () => {
+    document.getElementById('enableModal').classList.remove('active');
+});
+
+document.getElementById('enableModal').addEventListener('click', (e) => {
+    if (e.target.id === 'enableModal') {
+        document.getElementById('enableModal').classList.remove('active');
+    }
+});
+
+// Update time
+function updateTime() {
+    const now = new Date();
+    const h = now.getHours();
+    const m = now.getMinutes().toString().padStart(2, '0');
+    document.getElementById('time').textContent = `${h}:${m}`;
+}
+
+updateTime();
+setInterval(updateTime, 60000);
+
+// Settings functions
+function toggleSubmenu(id) {
+    document.getElementById(id).classList.toggle('active');
+}
+
+function toggleFolder(header) {
+    const arrow = header.querySelector('.folder-arrow');
+    const children = header.nextElementSibling;
+    arrow.classList.toggle('open');
+    children.classList.toggle('open');
+}
+
+function toggleFileChildren(file) {
+    const children = file.nextElementSibling;
+    if (children && children.classList.contains('setting-file-children')) {
+        children.classList.toggle('open');
+        file.classList.toggle('setting-file-expanded');
+        const arrow = file.querySelector('.folder-arrow');
+        if (arrow) arrow.classList.toggle('open');
+    }
+}
+
+function selectTheme(el) {
+    document.querySelectorAll('.theme-option').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
+function selectLayout(el, name) {
+    const item = el.closest('.setting-item');
+    if (item) {
+        item.querySelector('.setting-value').textContent = name;
+    }
+    toggleSubmenu('layoutSubmenu');
+}
+
+// ===== LANGUAGE SWITCHER =====
+function showLangSwitcher(spaceKey) {
+    const switcher = document.getElementById('langSwitcher');
+    const rect = spaceKey.getBoundingClientRect();
+    switcher.style.left = rect.left + rect.width / 2 + 'px';
+    switcher.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+    switcher.classList.add('visible');
+    switcher.querySelectorAll('.lang-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.lang === currentLayout);
+    });
+    window._isLangSwitching = true;
+}
+
+function hideLangSwitcher() {
+    document.getElementById('langSwitcher').classList.remove('visible');
+    setTimeout(() => { window._isLangSwitching = false; }, 50);
+}
+
+function switchLang(lang) {
+    currentLayout = lang;
+    caps = false;
+    renderKeyboard();
+    hideLangSwitcher();
+}
+
+document.addEventListener('mousedown', (e) => {
+    const switcher = document.getElementById('langSwitcher');
+    if (switcher.classList.contains('visible') && !switcher.contains(e.target) && !e.target.closest('#spaceKey')) {
+        hideLangSwitcher();
+    }
+});
+
+// ===== THEME SYSTEM =====
+const gradients = {
+    'linear-135': 'linear-gradient(135deg, #0F0C29 0%, #302B63 50%, #24243E 100%)',
+    'linear-90': 'linear-gradient(90deg, #1a1a2e 0%, #2d1b4e 50%, #1a1a2e 100%)',
+    'linear-180': 'linear-gradient(180deg, #4facfe 0%, #00f2fe 100%)',
+    'radial': 'radial-gradient(circle at 30% 50%, #302b63, #0f0c29)',
+    'conic': 'conic-gradient(from 45deg, #1a1a2e, #302b63, #764ba2, #1a1a2e)',
+    'aurora': 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #0f0c29 100%)',
+    'mesh': 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%)',
+    'nebula': 'radial-gradient(ellipse at center, #1a1a3e 0%, #0d0d1a 50%, #000 100%)',
+    'sunset': 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+    'ocean': 'linear-gradient(135deg, #0077b6 0%, #00b4d8 50%, #90e0ef 100%)',
+    'forest': 'linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)',
+    'fire': 'linear-gradient(135deg, #f12711 0%, #f5af19 100%)',
+    'purple': 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+    'midnight': 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
+    'candy': 'linear-gradient(135deg, #ee9ca7 0%, #ffdde1 50%, #ee9ca7 100%)',
+    'ice': 'linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%)',
+    'lavender': 'linear-gradient(135deg, #c471ed 0%, #f7797d 100%)',
+    'emerald': 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)'
+};
+
+const glassStyles = {
+    'frosted': { bg: 'rgba(255,255,255,0.12)', blur: '20px', border: 'rgba(255,255,255,0.18)' },
+    'crystal': { bg: 'rgba(255,255,255,0.06)', blur: '40px', border: 'rgba(255,255,255,0.25)' },
+    'smoke': { bg: 'rgba(200,200,200,0.15)', blur: '12px', border: 'rgba(255,255,255,0.1)' },
+    'ice': { bg: 'rgba(200,230,255,0.1)', blur: '25px', border: 'rgba(200,230,255,0.2)' },
+    'matte': { bg: 'rgba(100,100,100,0.2)', blur: '8px', border: 'rgba(255,255,255,0.08)' },
+    'glossy': { bg: 'rgba(255,255,255,0.18)', blur: '30px', border: 'rgba(255,255,255,0.35)' }
+};
+
+const keyStyles = {
+    'glass': { bg: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.1)', radius: '10px', shadow: '0 2px 4px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1)' },
+    'flat': { bg: 'rgba(255,255,255,0.12)', border: 'none', radius: '10px', shadow: 'none' },
+    'neumorph': { bg: 'rgba(50,50,80,0.3)', border: 'none', radius: '10px', shadow: '3px 3px 8px rgba(0,0,0,0.3), -3px -3px 8px rgba(255,255,255,0.05)' },
+    'outlined': { bg: 'transparent', border: '1.5px solid rgba(255,255,255,0.25)', radius: '10px', shadow: 'none' },
+    'pill': { bg: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.1)', radius: '24px', shadow: '0 2px 4px rgba(0,0,0,0.1)' },
+    'rounded': { bg: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.1)', radius: '14px', shadow: '0 2px 4px rgba(0,0,0,0.1)' }
+};
+
+let currentGlass = 'frosted';
+let currentKeyStyle = 'glass';
+let isLightMode = false;
+
+function applyTheme(name, el) {
+    document.querySelectorAll('#gradientGrid .theme-option').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+    document.body.style.background = gradients[name];
+}
+
+function applyGlass(name, el) {
+    document.querySelectorAll('#glassGrid .theme-option').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+    currentGlass = name;
+    const style = glassStyles[name];
+    const root = document.documentElement;
+    root.style.setProperty('--glass-bg', style.bg);
+    root.style.setProperty('--glass-blur', style.blur);
+    root.style.setProperty('--glass-border', style.border);
+    updateKeys();
+}
+
+function applyKeyStyle(name, el) {
+    document.querySelectorAll('#keyGrid .theme-option').forEach(t => t.classList.remove('selected'));
+    el.classList.add('selected');
+    currentKeyStyle = name;
+    updateKeys();
+}
+
+function updateKeys() {
+    const style = keyStyles[currentKeyStyle];
+    document.querySelectorAll('.key').forEach(key => {
+        key.style.background = style.bg;
+        key.style.border = style.border;
+        key.style.borderRadius = style.radius;
+        key.style.boxShadow = style.shadow;
+    });
+}
+
+function updateBlur(val) {
+    document.documentElement.style.setProperty('--glass-blur', val + 'px');
+    document.querySelector('#blurSlider').nextElementSibling.textContent = val + 'px';
+}
+
+function updateGlassOpacity(val) {
+    const opacity = val / 100;
+    const glass = glassStyles[currentGlass];
+    const bg = glass.bg.replace(/[\d.]+\)/, opacity + ')');
+    document.documentElement.style.setProperty('--glass-bg', bg);
+    document.querySelector('#opacitySlider').nextElementSibling.textContent = val + '%';
+}
+
+function updateBorder(val) {
+    const opacity = val / 100;
+    document.documentElement.style.setProperty('--glass-border', `rgba(255,255,255,${opacity})`);
+    document.querySelector('#borderSlider').nextElementSibling.textContent = val + '%';
+}
+
+function toggleLightMode(checked) {
+    isLightMode = checked;
+    const root = document.documentElement;
+    if (checked) {
+        root.style.setProperty('--text-primary', '#1A1A1A');
+        root.style.setProperty('--text-secondary', 'rgba(0,0,0,0.6)');
+        root.style.setProperty('--key-bg', 'rgba(0,0,0,0.08)');
+        document.body.style.background = 'linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%)';
+    } else {
+        root.style.setProperty('--text-primary', '#FFFFFF');
+        root.style.setProperty('--text-secondary', 'rgba(255,255,255,0.7)');
+        root.style.setProperty('--key-bg', 'rgba(255,255,255,0.15)');
+        document.body.style.background = gradients['linear-135'];
+    }
+    updateKeys();
+}
+
+function updateAccent(color) {
+    document.documentElement.style.setProperty('--accent', color);
+    document.documentElement.style.setProperty('--accent-gradient', `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)`);
+}
+
+// Init
+renderKeyboard();
+
+// ===== AI FEATURES ENGINE =====
+
+// AI State
+let aiMode = 'assistant';
+let aiPanelVisible = false;
+let typingTimeout = null;
+let wordHistory = [];
+let contextBuffer = '';
+
+// AI Knowledge Bases
+const aiDictionaries = {
+    greetings: ['Hello', 'Hi there', 'Hey', 'Good morning', 'Good afternoon', 'Good evening', 'Greetings', 'Hi! How are you?'],
+    responses: ['Thank you!', 'Sounds great!', 'I agree', 'That works', 'Perfect!', 'Awesome!', 'Got it!', 'Will do!'],
+    closings: ['Best regards', 'Thanks', 'Talk soon', 'Have a great day', 'Cheers', 'Take care', 'See you later'],
+    common: ['the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'I', 'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at'],
+    business: ['meeting', 'schedule', 'deadline', 'project', 'update', 'review', 'proposal', 'agreement', 'contract', 'budget'],
+    casual: ['lol', 'brb', 'omg', 'idk', 'tbh', 'imo', 'np', 'wyd', 'hbu', 'smh'],
+    emojis: {
+        'happy': '😊😄🎉👍✨💪🌟😁',
+        'sad': '😢😞😔💔😥',
+        'love': '❤️😍💕💖💗💘💝🥰',
+        'angry': '😡😠🤬💢👿',
+        'thinking': '🤔💭🧐💡👀',
+        'celebrate': '🎉🎊🥳🎈🎁🏆⭐',
+        'work': '💼👨‍💻👩‍💻💻📊📈',
+        'food': '🍕🍔🍟🌮🍜🍣🍰☕',
+        'weather': '☀️🌤️⛅🌧️❄️🌈🌪️',
+        'time': '⏰⌚🕐📅🗓️⏳'
+    }
+};
+
+const translationDB = {
+    'hello': { 'bn': 'হ্যালো', 'es': 'Hola', 'fr': 'Bonjour', 'de': 'Hallo', 'jp': 'こんにちは' },
+    'thank you': { 'bn': 'ধন্যবাদ', 'es': 'Gracias', 'fr': 'Merci', 'de': 'Danke', 'jp': 'ありがとう' },
+    'how are you': { 'bn': 'আপনি কেমন আছেন', 'es': '¿Cómo estás?', 'fr': 'Comment allez-vous?', 'de': 'Wie geht es Ihnen?', 'jp': 'お元気ですか？' },
+    'good morning': { 'bn': 'সুপ্রভাত', 'es': 'Buenos días', 'fr': 'Bonjour', 'de': 'Guten Morgen', 'jp': 'おはようございます' },
+    'good night': { 'bn': 'শুভ রাত্রি', 'es': 'Buenas noches', 'fr': 'Bonne nuit', 'de': 'Gute Nacht', 'jp': 'おやすみなさい' },
+    'i love you': { 'bn': 'আমি তোমাকে ভালোবাসি', 'es': 'Te amo', 'fr': 'Je t\'aime', 'de': 'Ich liebe dich', 'jp': '愛してます' },
+    'yes': { 'bn': 'হ্যাঁ', 'es': 'Sí', 'fr': 'Oui', 'de': 'Ja', 'jp': 'はい' },
+    'no': { 'bn': 'না', 'es': 'No', 'fr': 'Non', 'de': 'Nein', 'jp': 'いいえ' },
+    'please': { 'bn': 'অনুগ্রহ করে', 'es': 'Por favor', 'fr': 'S\'il vous plaît', 'de': 'Bitte', 'jp': 'お願いします' },
+    'sorry': { 'bn': 'দুঃখিত', 'es': 'Lo siento', 'fr': 'Désolé', 'de': 'Entschuldigung', 'jp': 'すみません' }
+};
+
+const grammarRules = {
+    'i ': 'I ',
+    ' im ': ' I\'m ',
+    ' dont ': ' don\'t ',
+    ' cant ': ' can\'t ',
+    ' wont ': ' won\'t ',
+    ' didnt ': ' didn\'t ',
+    ' wouldnt ': ' wouldn\'t ',
+    ' couldnt ': ' couldn\'t ',
+    ' shouldnt ': ' shouldn\'t ',
+    ' isnt ': ' isn\'t ',
+    ' arent ': ' aren\'t ',
+    ' wasnt ': ' wasn\'t ',
+    ' werent ': ' weren\'t ',
+    ' doesnt ': ' doesn\'t ',
+    ' didnt ': ' didn\'t ',
+    'ive ': 'I\'ve ',
+    'youre ': 'you\'re ',
+    'theyre ': 'they\'re ',
+    'weve ': 'we\'ve ',
+    'hes ': 'he\'s ',
+    'shes ': 'she\'s ',
+    'its': 'it\'s',
+    'thier ': 'their ',
+    'recieve ': 'receive ',
+    'occured ': 'occurred ',
+    'seperate ': 'separate ',
+    'definately ': 'definitely ',
+    'goverment ': 'government ',
+};
+
+const tonePresets = {
+    'formal': { replacements: { 'hi': 'Hello', 'thanks': 'Thank you', 'bye': 'Goodbye', 'ok': 'Understood', 'yeah': 'Yes', 'nah': 'No' } },
+    'casual': { replacements: { 'Hello': 'Hey', 'Thank you': 'Thanks!', 'Goodbye': 'See ya', 'Understood': 'Got it', 'Yes': 'Yeah', 'No': 'Nah' } },
+    'friendly': { replacements: { 'Hello': 'Hi there! 😊', 'Thank you': 'Thanks so much! 🙏', 'Good': 'Awesome! ✨', 'Okay': 'Perfect! 👍' } },
+    'professional': { replacements: { 'I think': 'I believe', 'maybe': 'potentially', 'but': 'however', 'so': 'therefore', 'also': 'additionally' } }
+};
+
+// AI Suggestion Engine
+function generateSuggestions(currentText) {
+    const words = currentText.trim().split(/\s+/);
+    const lastWord = words[words.length - 1]?.toLowerCase() || '';
+    const suggestions = [];
+
+    // Context-aware suggestions
+    if (words.length <= 1) {
+        // Greeting suggestions
+        suggestions.push(...aiDictionaries.greetings.slice(0, 3));
+    }
+
+    if (lastWord.length > 2) {
+        // Word completion
+        const completions = getWordCompletions(lastWord);
+        if (completions.length > 0) {
+            suggestions.push(...completions.slice(0, 2));
+        }
+    }
+
+    // Phrase suggestions based on context
+    if (currentText.includes('how are')) {
+        suggestions.push('How are you doing?');
+    }
+    if (currentText.includes('thank')) {
+        suggestions.push('Thank you very much!');
+    }
+    if (currentText.includes('see')) {
+        suggestions.push('See you later!');
+    }
+
+    // Smart replies
+    if (currentText.endsWith('?')) {
+        suggestions.push('Yes, absolutely!', 'Sure thing!', 'Let me check...');
+    }
+
+    return [...new Set(suggestions)].slice(0, 5);
+}
+
+function getWordCompletions(partial) {
+    const commonWords = [
+        'the', 'there', 'they', 'their', 'them', 'then', 'than', 'that', 'this', 'these', 'those',
+        'hello', 'help', 'here', 'have', 'had', 'has', 'how', 'what', 'when', 'where', 'which',
+        'who', 'whom', 'whose', 'why', 'will', 'would', 'could', 'should', 'may', 'might',
+        'thank', 'thanks', 'thinking', 'thought', 'through', 'think', 'thing', 'things',
+        'great', 'good', 'going', 'got', 'give', 'get', 'just', 'make', 'made',
+        'really', 'right', 'very', 'much', 'more', 'most', 'some', 'same',
+        'please', 'pleased', 'pleasure',
+        'morning', 'night', 'afternoon', 'evening',
+        'today', 'tomorrow', 'yesterday',
+        'beautiful', 'awesome', 'amazing', 'excellent', 'perfect',
+        'important', 'interesting', 'different', 'special',
+        'because', 'before', 'after', 'between', 'under', 'over',
+        'about', 'above', 'below', 'against', 'during', 'without',
+        'information', 'question', 'answer', 'problem', 'solution',
+        'work', 'working', 'worked', 'worker',
+        'time', 'times', 'timing',
+        'person', 'people', 'personnel',
+        'world', 'worlds',
+        'hand', 'hands', 'handle',
+        'part', 'parts', 'party',
+        'place', 'places',
+        'case', 'cases',
+        'week', 'weeks',
+        'company', 'system', 'program',
+        'question', 'number', 'government',
+        'development', 'management', 'department'
+    ];
+
+    return commonWords.filter(word => word.startsWith(partial) && word.length > partial.length);
+}
+
+function updateAISuggestions() {
+    const outputEl = document.getElementById('output');
+    const currentText = outputEl.value || '';
+    const suggestions = generateSuggestions(currentText);
+    const bar = document.getElementById('aiSuggestionBar');
+
+    if (suggestions.length === 0) return;
+
+    let html = `<div class="ai-suggestion-label">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+    </div>`;
+
+    suggestions.forEach((s, i) => {
+        html += `<div class="ai-suggestion-chip ${i === 0 ? 'primary' : ''}" onclick="insertAISuggestion('${s.replace(/'/g, "\\'")}')">${s}</div>`;
+    });
+
+    bar.innerHTML = html;
+}
+
+function insertAISuggestion(text) {
+    const outputEl = document.getElementById('output');
+    let current = outputEl.value;
+
+    // If current ends with space or empty, just append
+    if (current.endsWith(' ') || current.length === 0) {
+        output += text + ' ';
+    } else {
+        // Replace last word
+        const words = current.split(/\s+/);
+        words[words.length - 1] = text;
+        output = words.join(' ') + ' ';
+    }
+
+    outputEl.value = output;
+    updateAISuggestions();
+}
+
+function insertAIResult(el) {
+    const text = el.querySelector('.ai-result-label').nextSibling?.textContent?.trim() || el.textContent;
+    const outputEl = document.getElementById('output');
+    output += text + ' ';
+    outputEl.value = output;
+    closeAIPanel();
+}
+
+// AI Panel Management
+function toggleAIPanel(mode) {
+    const panel = document.getElementById('aiPanel');
+
+    if (aiPanelVisible && aiMode === mode) {
+        closeAIPanel();
+        return;
+    }
+
+    aiMode = mode;
+    aiPanelVisible = true;
+    panel.classList.add('visible');
+
+    // Update active button
+    document.querySelectorAll('.function-bar .func-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+
+    switchAIMode(mode);
+}
+
+function closeAIPanel() {
+    document.getElementById('aiPanel').classList.remove('visible');
+    aiPanelVisible = false;
+    document.querySelectorAll('.function-bar .func-btn').forEach(btn => btn.classList.remove('active'));
+}
+
+function switchAIMode(mode, tabEl) {
+    aiMode = mode;
+
+    // Update tabs
+    document.querySelectorAll('.ai-mode-tab').forEach(tab => tab.classList.remove('active'));
+    if (tabEl) {
+        tabEl.classList.add('active');
+    } else {
+        document.querySelector(`.ai-mode-tab[data-mode="${mode}"]`)?.classList.add('active');
+    }
+
+    // Update panel title
+    const titles = {
+        'assistant': '✨ AI Assistant',
+        'translate': '🌐 AI Translate',
+        'grammar': '📝 Grammar Check',
+        'summarize': '📋 AI Summarize',
+        'rewrite': '🔄 AI Rewrite',
+        'emoji': '😀 AI Emoji'
+    };
+    document.getElementById('aiPanelTitle').textContent = titles[mode] || 'AI';
+
+    // Update input placeholder
+    const placeholders = {
+        'assistant': 'Ask me to complete, suggest, or help...',
+        'translate': 'Type text to translate...',
+        'grammar': 'Text will be auto-checked for grammar...',
+        'summarize': 'Text to summarize will appear here...',
+        'rewrite': 'Text to rewrite...',
+        'emoji': 'Search emoji by keyword...'
+    };
+    document.getElementById('aiInput').placeholder = placeholders[mode] || 'Type here...';
+
+    // Generate initial content
+    generateAIContent(mode);
+}
+
+function generateAIContent(mode) {
+    const outputEl = document.getElementById('output');
+    const currentText = outputEl.value || '';
+    const content = document.getElementById('aiPanelContent');
+
+    let results = [];
+
+    switch (mode) {
+        case 'assistant':
+            if (currentText.length > 0) {
+                const suggestions = generateSuggestions(currentText);
+                results = [
+                    { label: '💡 Smart Completions', items: suggestions },
+                    { label: '🎯 Next Words', items: ['continue typing', 'add more details', 'finish this thought'] }
+                ];
+            } else {
+                results = [
+                    { label: '💡 Quick Start', items: ['Start typing and I\'ll suggest completions', 'I can translate, check grammar, and more!', 'Try asking me to help with any text task'] }
+                ];
+            }
+            break;
+
+        case 'translate':
+            if (currentText.length > 0) {
+                const words = currentText.toLowerCase().trim().split(/\s+/);
+                const lastWords = words.slice(-3).join(' ');
+
+                // Try to find in DB
+                let translations = {};
+                Object.keys(translationDB).forEach(key => {
+                    if (lastWords.includes(key) || currentText.toLowerCase().includes(key)) {
+                        translations = translationDB[key];
+                    }
+                });
+
+                if (Object.keys(translations).length > 0) {
+                    results = [{
+                        label: '🌐 Translations',
+                        items: Object.entries(translations).map(([lang, text]) => {
+                            const langNames = { 'bn': '🇧🇩 বাংলা', 'es': '🇪🇸 Español', 'fr': '🇫🇷 Français', 'de': '🇩🇪 Deutsch', 'jp': '🇯🇵 日本語' };
+                            return `${langNames[lang] || lang}: ${text}`;
+                        })
+                    }];
+                } else {
+                    results = [
+                        { label: '🌐 Quick Translations', items: ['বাংলা: হ্যালো (Hello)', 'Español: Hola', 'Français: Bonjour', 'Deutsch: Hallo', '日本語: こんにちは'] }
+                    ];
+                }
+            } else {
+                results = [
+                    { label: '🌐 Supported Languages', items: ['🇺🇸 English → 🇧🇩 বাংলা', '🇺🇸 English → 🇪🇸 Español', '🇺🇸 English → 🇫🇷 Français', '🇺🇸 English → 🇩🇪 Deutsch', '🇺🇸 English → 🇯🇵 日本語'] },
+                    { label: '💡 Tip', items: ['Type text and I\'ll translate it automatically'] }
+                ];
+            }
+            break;
+
+        case 'grammar':
+            if (currentText.length > 0) {
+                const corrections = checkGrammar(currentText);
+                if (corrections.length > 0) {
+                    results = [{
+                        label: '✏️ Corrections Found',
+                        items: corrections
+                    }];
+                } else {
+                    results = [{
+                        label: '✅ No Issues',
+                        items: ['Your text looks great! No grammar errors detected.']
+                    }];
+                }
+            } else {
+                results = [
+                    { label: '📝 Grammar Rules Active', items: ['Auto-capitalization: "i" → "I"', 'Contractions: "dont" → "don\'t"', 'Common misspellings will be flagged', 'Type to see real-time grammar checking'] }
+                ];
+            }
+            break;
+
+        case 'summarize':
+            if (currentText.length > 0) {
+                const summary = summarizeText(currentText);
+                results = [{
+                    label: '📋 Summary',
+                    items: [summary]
+                }];
+            } else {
+                results = [
+                    { label: '📋 How It Works', items: ['I\'ll condense your text into key points', 'Type or paste longer text to summarize', 'Supports multiple paragraphs'] }
+                ];
+            }
+            break;
+
+        case 'rewrite':
+            if (currentText.length > 0) {
+                const tones = Object.keys(tonePresets);
+                const rewrites = tones.map(tone => {
+                    const result = rewriteTone(currentText, tone);
+                    const toneLabels = { 'formal': '👔 Formal', 'casual': '😎 Casual', 'friendly': '😊 Friendly', 'professional': '💼 Professional' };
+                    return `${toneLabels[tone]}: ${result}`;
+                });
+                results = [{
+                    label: '🔄 Rewritten Versions',
+                    items: rewrites
+                }];
+            } else {
+                results = [
+                    { label: '🔄 Rewrite Styles', items: ['👔 Formal - Professional tone', '😎 Casual - Relaxed language', '😊 Friendly - Warm and approachable', '💼 Professional - Business-ready'] }
+                ];
+            }
+            break;
+
+        case 'emoji':
+            results = [{
+                label: '😀 Popular Emoji',
+                items: [
+                    '😊 Happy', '😢 Sad', '❤️ Love', '😡 Angry',
+                    '🤔 Thinking', '🎉 Celebrate', '💼 Work', '🍕 Food',
+                    '☀️ Weather', '⏰ Time'
+                ]
+            }];
+            break;
+
+        case 'smartreply':
+            const replies = generateSmartReplies(currentText);
+            results = [{
+                label: '💬 Smart Replies',
+                items: replies
+            }];
+            break;
+    }
+
+    // Render results
+    let html = '';
+    results.forEach(group => {
+        html += `<div class="ai-result-label">${group.label}</div>`;
+        group.items.forEach((item, i) => {
+            html += `<div class="ai-result" onclick="insertAIResult(this)" style="margin-bottom: 6px;">
+                <div>${item}</div>
+            </div>`;
+        });
+    });
+
+    content.innerHTML = html;
+}
+
+function processAI() {
+    const input = document.getElementById('aiInput');
+    const query = input.value.trim();
+
+    if (!query) return;
+
+    const content = document.getElementById('aiPanelContent');
+    const outputEl = document.getElementById('output');
+    const currentText = outputEl.value || '';
+
+    let result = '';
+
+    switch (aiMode) {
+        case 'assistant':
+            result = processAssistant(query, currentText);
+            break;
+        case 'translate':
+            result = processTranslation(query);
+            break;
+        case 'grammar':
+            result = processGrammar(query || currentText);
+            break;
+        case 'summarize':
+            result = processSummarize(query || currentText);
+            break;
+        case 'rewrite':
+            result = processRewrite(query || currentText);
+            break;
+        case 'emoji':
+            result = processEmoji(query);
+            break;
+        case 'smartreply':
+            result = processSmartReply(query || currentText);
+            break;
+    }
+
+    // Add to panel
+    const resultHtml = `<div class="ai-result" onclick="insertAIResult(this)" style="margin-bottom: 8px;">
+        <div class="ai-result-label">✨ Result</div>
+        <div>${result}</div>
+    </div>`;
+
+    content.insertAdjacentHTML('afterbegin', resultHtml);
+    input.value = '';
+}
+
+// AI Processing Functions
+function processAssistant(query, currentText) {
+    // Smart completion
+    if (query.toLowerCase().includes('complete') || query.toLowerCase().includes('suggest')) {
+        const suggestions = generateSuggestions(currentText);
+        return suggestions.length > 0 ? suggestions.join(' | ') : 'Keep typing and I\'ll suggest completions!';
+    }
+
+    // General help
+    const responses = [
+        'I can help with: text completion, translation, grammar checking, summarization, rewriting, and emoji suggestions.',
+        'Try typing some text and I\'ll automatically suggest completions and improvements!',
+        'I\'m your AI keyboard assistant. Use the mode tabs above for specific tasks.',
+        'I can translate to বাংলা, Español, Français, Deutsch, and 日本語!'
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function processTranslation(text) {
+    const lower = text.toLowerCase();
+    let translations = [];
+
+    // Check database
+    Object.keys(translationDB).forEach(key => {
+        if (lower.includes(key)) {
+            const t = translationDB[key];
+            translations.push(`🇧🇩 ${t.bn}`);
+            translations.push(`🇪🇸 ${t.es}`);
+            translations.push(`🇫🇷 ${t.fr}`);
+            translations.push(`🇩🇪 ${t.de}`);
+            translations.push(`🇯🇵 ${t.jp}`);
+        }
+    });
+
+    if (translations.length > 0) {
+        return translations.join('\n');
+    }
+
+    // Simulated translation
+    return `Translation (simulated):\n🇧🇩 বাংলা: [${text}]\n🇪🇸 Español: [${text}]\n🇫🇷 Français: [${text}]`;
+}
+
+function checkGrammar(text) {
+    const corrections = [];
+    const lower = text.toLowerCase();
+
+    Object.entries(grammarRules).forEach(([wrong, right]) => {
+        if (lower.includes(wrong) && lower.indexOf(wrong) !== lower.indexOf(right.toLowerCase())) {
+            corrections.push(`✏️ "${wrong.trim()}" → "${right.trim()}"`);
+        }
+    });
+
+    // Check capitalization
+    if (text.match(/(^|\.\s+)[a-z]/)) {
+        corrections.push('🔤 Sentence should start with capital letter');
+    }
+
+    // Check double spaces
+    if (text.includes('  ')) {
+        corrections.push('⚠️ Remove extra spaces');
+    }
+
+    return corrections;
+}
+
+function processGrammar(text) {
+    const corrections = checkGrammar(text);
+    if (corrections.length === 0) {
+        return '✅ Your text looks perfect! No grammar issues detected.';
+    }
+    return corrections.join('\n');
+}
+
+function summarizeText(text) {
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+
+    if (sentences.length <= 2) {
+        return text.length > 50 ? text.substring(0, 50) + '...' : text;
+    }
+
+    // Simple extractive summarization
+    const keySentences = sentences.slice(0, Math.min(3, sentences.length));
+    return keySentences.join('. ') + '.';
+}
+
+function processSummarize(text) {
+    if (text.length < 20) {
+        return 'Please provide more text to summarize. I need at least a few sentences to extract key points.';
+    }
+    return summarizeText(text);
+}
+
+function rewriteTone(text, tone) {
+    const preset = tonePresets[tone];
+    if (!preset) return text;
+
+    let result = text;
+    Object.entries(preset.replacements).forEach(([from, to]) => {
+        const regex = new RegExp(`\\b${from}\\b`, 'gi');
+        result = result.replace(regex, to);
+    });
+
+    return result;
+}
+
+function processRewrite(text) {
+    if (text.length < 5) {
+        return 'Please provide more text to rewrite. I need at least a few words to work with.';
+    }
+
+    const tones = Object.keys(tonePresets);
+    const randomTone = tones[Math.floor(Math.random() * tones.length)];
+    const result = rewriteTone(text, randomTone);
+
+    return `${result}\n\n(Rewritten in ${randomTone} tone - use tabs to see all versions)`;
+}
+
+function processEmoji(query) {
+    const lower = query.toLowerCase();
+    let emojis = [];
+
+    Object.entries(aiDictionaries.emojis).forEach(([keyword, emojiList]) => {
+        if (lower.includes(keyword)) {
+            emojis.push(emojiList);
+        }
+    });
+
+    if (emojis.length > 0) {
+        return emojis.join(' ');
+    }
+
+    // Default emoji suggestions
+    return '😊 😄 ❤️ 👍 ✨ 💪 🎉 🌟 (Type mood keywords like: happy, sad, love, work, food, weather)';
+}
+
+function generateSmartReplies(text) {
+    const lower = text.toLowerCase();
+    const replies = [];
+
+    if (lower.includes('?')) {
+        replies.push('Yes, definitely! 👍');
+        replies.push('Sure thing! 😊');
+        replies.push('Let me think about it... 🤔');
+        replies.push('I\'ll get back to you soon');
+    }
+
+    if (lower.includes('thank')) {
+        replies.push('You\'re welcome! 😊');
+        replies.push('No problem at all! 👍');
+        replies.push('Happy to help! ✨');
+    }
+
+    if (lower.includes('hello') || lower.includes('hi')) {
+        replies.push('Hey! How are you? 😊');
+        replies.push('Hi there! What\'s up? 👋');
+        replies.push('Hello! Nice to hear from you! ✨');
+    }
+
+    if (lower.includes('meeting') || lower.includes('schedule')) {
+        replies.push('Sounds good, I\'ll be there! 📅');
+        replies.push('What time works best? ⏰');
+        replies.push('Let me check my calendar 🗓️');
+    }
+
+    if (replies.length === 0) {
+        replies.push('Got it! 👍');
+        replies.push('Thanks for letting me know');
+        replies.push('Sounds good! 😊');
+        replies.push('I see, thanks! ✨');
+    }
+
+    return replies;
+}
+
+function processSmartReply(text) {
+    const replies = generateSmartReplies(text);
+    return replies.join('\n');
+}
+
+// Auto-suggest on typing
+function onTextChange() {
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        updateAISuggestions();
+
+        // Update context buffer
+        const outputEl = document.getElementById('output');
+        contextBuffer = outputEl.value;
+        wordHistory = contextBuffer.split(/\s+/).filter(w => w.length > 0);
+
+        // If AI panel is open, update its content
+        if (aiPanelVisible) {
+            generateAIContent(aiMode);
+        }
+    }, 300);
+}
+
+// ===== FUNCTION BAR HANDLERS =====
+let clipboardContent = '';
+
+function handleFuncBtn(action, btnEl) {
+    const outputEl = document.getElementById('output');
+    
+    switch (action) {
+        case 'clipboard':
+            // Toggle active state
+            document.querySelectorAll('.func-btn').forEach(b => {
+                if (b.title === 'Clipboard') b.classList.toggle('active');
+            });
+            // Show clipboard content if exists
+            if (clipboardContent) {
+                alert('Clipboard: ' + clipboardContent);
+            } else {
+                alert('Clipboard is empty');
+            }
+            break;
+            
+        case 'voice':
+            btnEl.classList.toggle('active');
+            alert('🎤 Voice input activated (simulated)');
+            setTimeout(() => btnEl.classList.remove('active'), 1000);
+            break;
+            
+        case 'cursor-left':
+            outputEl.selectionStart = Math.max(0, (outputEl.selectionStart || output.length) - 1);
+            outputEl.selectionEnd = outputEl.selectionStart;
+            break;
+
+        case 'cursor-right':
+            outputEl.selectionStart = Math.min(output.length, (outputEl.selectionStart || 0) + 1);
+            outputEl.selectionEnd = outputEl.selectionStart;
+            break;
+
+        case 'cursor-up': {
+            // Move cursor to beginning of line (simplified)
+            const textBeforeCursor2 = output.substring(0, outputEl.selectionStart || output.length);
+            const lastNewline2 = textBeforeCursor2.lastIndexOf('\n');
+            outputEl.selectionStart = outputEl.selectionEnd = lastNewline2 >= 0 ? lastNewline2 + 1 : 0;
+            break;
+        }
+
+        case 'cursor-down': {
+            // Move cursor to end of line (simplified)
+            const currentPos2 = outputEl.selectionStart || output.length;
+            const nextNewline2 = output.indexOf('\n', currentPos2);
+            outputEl.selectionStart = outputEl.selectionEnd = nextNewline2 >= 0 ? nextNewline2 : output.length;
+            break;
+        }
+
+        case 'select-all':
+            outputEl.select();
+            break;
+
+        case 'cut': {
+            const selectedText2 = outputEl.value.substring(outputEl.selectionStart, outputEl.selectionEnd);
+            if (selectedText2) {
+                clipboardContent = selectedText2;
+                output = output.substring(0, outputEl.selectionStart) + output.substring(outputEl.selectionEnd);
+                outputEl.value = output;
+            }
+            break;
+        }
+
+        case 'copy': {
+            const copyText2 = outputEl.value.substring(outputEl.selectionStart, outputEl.selectionEnd);
+            if (copyText2) {
+                clipboardContent = copyText2;
+                // Try to use real clipboard API
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(copyText2).catch(() => {});
+                }
+            }
+            break;
+        }
+
+        case 'paste':
+            if (clipboardContent) {
+                const pos2 = outputEl.selectionStart || output.length;
+                output = output.substring(0, pos2) + clipboardContent + output.substring(pos2);
+                outputEl.value = output;
+                outputEl.selectionStart = outputEl.selectionEnd = pos2 + clipboardContent.length;
+                updateOutput();
+            } else if (navigator.clipboard) {
+                navigator.clipboard.readText().then(text => {
+                    const pastePos2 = outputEl.selectionStart || output.length;
+                    output = output.substring(0, pastePos2) + text + output.substring(pastePos2);
+                    outputEl.value = output;
+                    outputEl.selectionStart = outputEl.selectionEnd = pastePos2 + text.length;
+                    updateOutput();
+                    clipboardContent = text;
+                }).catch(() => {});
+            }
+            break;
+    }
+    
+    // Visual feedback
+    btnEl.style.transform = 'scale(0.9)';
+    setTimeout(() => btnEl.style.transform = '', 100);
+}
+</script>
+</body>
+</html>
+
